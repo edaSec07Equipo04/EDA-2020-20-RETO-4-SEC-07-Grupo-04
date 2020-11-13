@@ -32,6 +32,8 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
+from DISClib.ADT import orderedmap as om
+from DISClib.DataStructures import mapentry as me
 assert config
 
 """
@@ -73,8 +75,6 @@ def addTrip(citibike, trip):
     lt.addLast(lst,trip)
 
 
-
-
 def addStation(citibike,stationId):
     """
     Adiciona una estación como un vértice del grafo
@@ -111,7 +111,282 @@ def totalConnections(citibike):
     """
     Retorna el total arcos del grafo
     """
-    return gr.numEdges(citibike['graph'])   
+    return gr.numEdges(citibike['graph'])
+
+
+########## REQUERIMIENTO 3 - Germán Rojas #############
+def topStations(citibike):
+    """
+    Da la información de:
+    - Top 3 estaciones de llegada
+    - Top 3 estaciones de salida
+    - Top 3 estaciones menos utilizadas
+    """
+    vertex = gr.vertices(citibike['graph']) #Número de vértices (estaciones) en Citibike
+    iterator = it.newIterator(vertex)
+    data = {'degree':None,     #Lugar donde se guardarán los datos obtenidos (Salidas, llegadas, totales)
+            'indegree':None,
+            'total': None} 
+    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data['indegree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data['total']=om.newMap(omaptype='RBT',comparefunction=compareValues)   
+    while it.hasNext(iterator):  #Se agrega la información a data
+        station = it.next(iterator)
+        vertexDegree=gr.degree(citibike['graph'],station) #Número de salidas
+        updateDegreeIndex(data['degree'],vertexDegree,station)
+        vertexIndegree=gr.indegree(citibike['graph'],station) #Número de llegadas
+        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
+        totalVertex = vertexDegree+vertexIndegree #Total de salidas y llegadas
+        updateTotalIndex(data['total'],totalVertex,station)
+
+    lstExitMax = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones de salida
+    obtainValues(data,lstExitMax,'d')
+    
+    lstArriveMax = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones de llegada
+    obtainValues(data,lstArriveMax,'i')
+    
+    lstTotal = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones menos usadas
+    obtainValues(data,lstTotal,'t')
+    
+    pos = 1
+
+    while pos < 4:   #Acá se actualizan los nombres de las estaciones
+        changeInfo(citibike,lstExitMax,pos)
+        changeInfo(citibike,lstArriveMax,pos)
+        changeInfo(citibike,lstTotal,pos)
+        pos +=1
+    
+    eM1,eM2,eM3 = lt.getElement(lstExitMax,1),lt.getElement(lstExitMax,2),lt.getElement(lstExitMax,3)
+    aM1,aM2,aM3 = lt.getElement(lstArriveMax,1),lt.getElement(lstArriveMax,2),lt.getElement(lstArriveMax,3)
+    tM1,tM2,tM3 = lt.getElement(lstTotal,1),lt.getElement(lstTotal,2),lt.getElement(lstTotal,3)
+
+    return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
+    
+    
+
+def changeInfo(citibike,lst,pos):
+    """
+    Intercambia el ID de la estación por su nombre correspondiente
+    """
+    lstCitibike = citibike['stations']
+    iterator = it.newIterator(lstCitibike)
+    stationId = lt.getElement(lst,pos)
+    while it.hasNext(iterator):
+            info = it.next(iterator)
+            startStation = info['start station id']
+            endStation = info['end station id']
+            if stationId == startStation:
+                stationId = info['start station name']
+                lt.changeInfo(lst,pos,stationId)
+                break
+            elif stationId == endStation:           
+                stationId = info['end station name']
+                lt.changeInfo(lst,pos,stationId)
+                break    
+
+def obtainValues(data,lst,method):
+    """
+    Agrega los ID de las estaciones a su lista correspondiente
+    """
+    while lt.size(lst) < 3:
+        if method == 'd':   #Estaciones de salida
+            a = om.maxKey(data['degree'])
+            r = om.get(data['degree'],om.maxKey(data['degree']))
+            if r['key'] is not None:
+                degreeMap=me.getValue(r)['degreeIndex']
+                result = m.get(degreeMap,a)
+                iterations = knowQuantity(result)
+                if iterations == 0:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    om.deleteMax(data['degree'])
+                    lt.addLast(lst,n)
+                elif iterations == 1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    om.deleteMax(data['degree'])
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                elif iterations == -1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    l = lt.getElement(me.getValue(result)['lstStations'],3)
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                    lt.addLast(lst,l)
+        elif method == 't': #Estaciones menos usadas
+            a = om.minKey(data['total'])
+            r = om.get(data['total'],om.minKey(data['total']))
+            if r['key'] is not None:
+                totalMap=me.getValue(r)['totalIndex']
+                result = m.get(totalMap,a)
+                iterations = knowQuantity(result)
+                if iterations == 0:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    om.deleteMin(data['total'])
+                    lt.addLast(lst,n)
+                elif iterations == 1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    om.deleteMin(data['total'])
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                elif iterations == -1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    l = lt.getElement(me.getValue(result)['lstStations'],3)
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                    lt.addLast(lst,l)
+        elif method == 'i': #Estaciones de llegada
+            a = om.maxKey(data['indegree'])
+            r = om.get(data['indegree'],om.maxKey(data['indegree']))
+            if r['key'] is not None:
+                inDegreeMap=me.getValue(r)['inDegreeIndex']
+                result = m.get(inDegreeMap,a)
+                iterations = knowQuantity(result)
+                if iterations == 0:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    om.deleteMax(data['indegree'])
+                    lt.addLast(lst,n)
+                elif iterations == 1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    om.deleteMax(data['indegree'])
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                elif iterations == -1:
+                    n = lt.getElement(me.getValue(result)['lstStations'],1)
+                    k = lt.getElement(me.getValue(result)['lstStations'],2)
+                    l = lt.getElement(me.getValue(result)['lstStations'],3)
+                    lt.addLast(lst,n)
+                    lt.addLast(lst,k)
+                    lt.addLast(lst,l)        
+        
+
+def knowQuantity(info):
+    """
+    Indica la operación que debe realizar la función obtainValues
+    """
+    result = lt.size(me.getValue(info)['lstStations'])
+    if result == 1:
+        return 0
+    elif result == 2:
+        return 1
+    elif result >=3:
+        return -1
+
+def updateDegreeIndex(map,degree,station):
+    entry = om.get(map,degree)
+    if entry is None:
+        degreeEntry = newDataEntry(station)
+        om.put(map,degree,degreeEntry)
+    else:
+        degreeEntry=me.getValue(entry)
+    addDegreeIndex(degreeEntry,degree,station)
+
+def updateIndegreeIndex(map,inDegree,station):
+    entry = om.get(map,inDegree)
+    if entry is None:
+        inDegreeEntry = newDataEntry2(station)
+        om.put(map,inDegree,inDegreeEntry)
+    else:
+        inDegreeEntry=me.getValue(entry)
+    addIndegreeIndex(inDegreeEntry,inDegree,station)
+
+def updateTotalIndex(map,total,station):
+    entry = om.get(map,total)
+    if entry is None:
+        totalEntry = newDataEntry3(station)
+        om.put(map,total,totalEntry)
+    else:
+        totalEntry=me.getValue(entry)
+    addTotalIndex(totalEntry,total,station)
+
+def addDegreeIndex(degreeEntry,degree,station):
+    lst = degreeEntry['lstDegree']
+    lt.addLast(lst,station)
+    degreeIndex = degreeEntry['degreeIndex']
+    degreeValue = m.get(degreeIndex,degree)
+    if degreeValue is None:
+        entry = newDegreeEntry(degree,station)
+        lt.addLast(entry['lstStations'],station)
+        m.put(degreeIndex,degree,entry)
+    else:
+        entry = me.getValue(degreeValue)
+        lt.addLast(entry['lstStations'],station)
+    return degreeEntry
+
+def addIndegreeIndex(inDegreeEntry,inDegree,station):
+    lst = inDegreeEntry['lstIndegree']
+    lt.addLast(lst,station)
+    inDegreeIndex = inDegreeEntry['inDegreeIndex']
+    inDegreeValue = m.get(inDegreeIndex,inDegree)
+    if inDegreeValue is None:
+        entry = newIndegreeEntry(inDegree,station)
+        lt.addLast(entry['lstStations'],station)
+        m.put(inDegreeIndex,inDegree,entry)
+    else:
+        entry = me.getValue(inDegreeValue)
+        lt.addLast(entry['lstStations'],station)
+    return inDegreeEntry
+
+def addTotalIndex(totalEntry,total,station):
+    lst = totalEntry['lstTotal']
+    lt.addLast(lst,station)
+    totalIndex = totalEntry['totalIndex']
+    totalValue = m.get(totalIndex,total)
+    if totalValue is None:
+        entry = newTotalEntry(total,station)
+        lt.addLast(entry['lstStations'],station)
+        m.put(totalIndex,total,entry)
+    else:
+        entry = me.getValue(totalValue)
+        lt.addLast(entry['lstStations'],station)
+    return totalEntry
+
+def newDataEntry(value):
+    entry = {'degreeIndex':None,'lstDegree':None}
+    entry['degreeIndex']=m.newMap(numelements=3,
+                                    maptype='PROBING',
+                                    comparefunction=compareValuesD)
+    entry['lstDegree']=lt.newList('ARRAY_LIST',compareStations)
+    return entry
+
+def newDataEntry2(value):
+    entry = {'inDegreeIndex':None,'lstIndegree':None}
+    entry['inDegreeIndex']=m.newMap(numelements=3,
+                                    maptype='PROBING',
+                                    comparefunction=compareValuesD)
+    entry['lstIndegree']=lt.newList('ARRAY_LIST',compareStations)
+    return entry
+
+def newDataEntry3(value):
+    entry = {'totalIndex':None,'lstTotal':None}
+    entry['totalIndex']=m.newMap(numelements=3,
+                                    maptype='PROBING',
+                                    comparefunction=compareValuesD)
+    entry['lstTotal']=lt.newList('ARRAY_LIST',compareStations)
+    return entry
+
+def newDegreeEntry(degree, station):
+    degreeEntry = {'degree':None, 'lstStations':None,}
+    degreeEntry['degree']=degree
+    degreeEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
+    return degreeEntry
+
+def newIndegreeEntry(indegree, station):
+    inDegreeEntry = {'indegree':None, 'lstStations':None,}
+    inDegreeEntry['indegree']=indegree
+    inDegreeEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
+    return inDegreeEntry
+
+def newTotalEntry(total, station):
+    totalEntry = {'total':None, 'lstStations':None,}
+    totalEntry['indegree']=total
+    totalEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
+    return totalEntry
+
+####################################################################
 
 def numSCC(graph):
     """
@@ -146,6 +421,23 @@ def compareStations(station, keyvaluestation):
     if (station == stationId):
         return 0
     elif (station > stationId):
+        return 1
+    else:
+        return -1
+
+def compareValues(v1,v2):
+    if v1 == v2:
+        return 0
+    elif v1 > v2:
+        return 1
+    else:
+        return -1
+
+def compareValuesD(v1,v):
+    v2 = v['key']
+    if v1 == v2:
+        return 0
+    elif v1 > v2:
         return 1
     else:
         return -1
