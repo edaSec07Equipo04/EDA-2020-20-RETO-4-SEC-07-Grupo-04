@@ -91,3 +91,12 @@ def sameCC(citibike,station1,station2):
 
 def SizeStations(graph):
     return model.stationsSize(graph)
+
+def topStations(citibike):
+    """
+    Da la información de:
+    - Top 3 estaciones de llegada
+    - Top 3 estaciones de salida
+    - Top 3 estaciones menos utilizadas
+    """
+    return model.topStations(citibike)
