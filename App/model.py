@@ -132,7 +132,7 @@ def topStations(citibike):
     data['total']=om.newMap(omaptype='RBT',comparefunction=compareValues)   
     while it.hasNext(iterator):  #Se agrega la información a data
         station = it.next(iterator)
-        vertexDegree=gr.degree(citibike['graph'],station) #Número de salidas
+        vertexDegree=gr.outdegree(citibike['graph'],station) #Número de salidas
         updateDegreeIndex(data['degree'],vertexDegree,station)
         vertexIndegree=gr.indegree(citibike['graph'],station) #Número de llegadas
         updateIndegreeIndex(data['indegree'],vertexIndegree,station)
