@@ -100,3 +100,6 @@ def topStations(citibike):
     - Top 3 estaciones menos utilizadas
     """
     return model.topStations(citibike)
+
+def routeRecomendations(citibike,ageRange):
+    return model.routeRecomendations(citibike,ageRange)

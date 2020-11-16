@@ -34,6 +34,7 @@ from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
+from datetime import date
 assert config
 
 """
@@ -50,7 +51,8 @@ def newAnalyzer():
     try:
         citibike = {
                     'graph': None,
-                    'stations': None             
+                    'stations': None,   
+                    'paths':None          
                     }
 
         citibike['graph']=gr.newGraph(datastructure='ADJ_LIST',
@@ -162,7 +164,80 @@ def topStations(citibike):
 
     return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
     
+
+
+####################################################################
+
+
+########## Requerimiento 5 - Grupal ##########
+def routeRecomendations(citibike,ageRange):     
+    lstExit = lt.newList("ARRAY_LIST",compareValues)
+    lstArrive = lt.newList("ARRAY_LIST",compareValues)
+    findStationsInRange(citibike,ageRange,lstExit,lstArrive)
+    data = {'degree':None,
+            'indegree':None}
+    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data['indegree'] = om.newMap(omaptype='RBT',comparefunction=compareValues)
+    itExit = it.newIterator(lstExit)
+    itArrive = it.newIterator(lstArrive)
+    while it.hasNext(itExit):
+        station = it.next(itExit)
+        vertexDegree = gr.outdegree(citibike['graph'],station)
+        updateDegreeIndex(data['degree'],vertexDegree,station)
+    while it.hasNext(itArrive):
+        station = it.next(itArrive)
+        vertexIndegree = gr.indegree(citibike['graph'],station)
+        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
     
+    lstExitMax = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstExitMax,'d')
+
+    lstArriveMax = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstArriveMax,'i')
+    
+    initStation = lt.getElement(lstExitMax,1)
+    finalStation = lt.getElement(lstArriveMax,1)
+
+    minimumCostPaths(citibike,initStation)
+    path = minimumCostPath(citibike,finalStation)
+
+    changeInfo(citibike,lstExitMax,1)
+    changeInfo(citibike,lstArriveMax,1)
+
+    initStation = lt.getElement(lstExitMax,1)
+    finalStation = lt.getElement(lstArriveMax,1)
+    
+    return initStation,finalStation,path
+
+def minimumCostPaths(citibike,station):
+    citibike['paths'] = djk.Dijkstra(citibike['graph'],station)
+    return citibike
+
+def minimumCostPath(citibike,station):
+    path = djk.pathTo(citibike['paths'],station)
+    return path
+
+def numSCC(graph):
+    """
+    Informa cuántos componentes fuertemente conectados se encontraron
+    """
+    sc = scc.KosarajuSCC(graph)
+    return scc.connectedComponents(sc)
+
+def sameCC(graph,station1,station2):
+    """
+    Informa si dos estaciones están en el mismo componente conectado.
+    """
+    sc = scc.KosarajuSCC(graph)
+    return scc.stronglyConnected(sc,station1,station2)
+
+def stationsSize(graph):
+    return lt.size(graph['stations'])
+
+# ==============================
+# Funciones Helper
+# ==============================
+
 
 def changeInfo(citibike,lst,pos):
     """
@@ -386,29 +461,35 @@ def newTotalEntry(total, station):
     totalEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
     return totalEntry
 
-####################################################################
-
-def numSCC(graph):
-    """
-    Informa cuántos componentes fuertemente conectados se encontraron
-    """
-    sc = scc.KosarajuSCC(graph)
-    return scc.connectedComponents(sc)
-
-def sameCC(graph,station1,station2):
-    """
-    Informa si dos estaciones están en el mismo componente conectado.
-    """
-    sc = scc.KosarajuSCC(graph)
-    return scc.stronglyConnected(sc,station1,station2)
-
-def stationsSize(graph):
-    return lt.size(graph['stations'])
-
-# ==============================
-# Funciones Helper
-# ==============================
-
+def findStationsInRange(citibike,ageRange,lst1,lst2):
+    today = date.today()
+    year = today.year
+    iterator = it.newIterator(citibike['stations'])
+    if ageRange[0] == "0":
+        initRange = ageRange[0]
+        finalRange = int(ageRange[2]+ageRange[3])
+    elif ageRange == "60+" or ageRange=="60 +":
+        initRange = 60
+        finalRange = year - 1870
+    else: 
+        initRange = int(ageRange[0]+ageRange[1])
+        finalRange = int(ageRange[3]+ageRange[4])
+    while it.hasNext(iterator):
+        info = it.next(iterator)
+        birthYear = int(info['birth year'])
+        if year - birthYear >= initRange and year - birthYear <= finalRange:
+            start = info['start station id']
+            end = info['end station id']
+            p1 = lt.isPresent(lst1,start)
+            p2 = lt.isPresent(lst2,end)
+            if p1 == 0:
+                lt.addLast(lst1,start)
+            else:
+                pass
+            if p2 == 0:
+                lt.addLast(lst2,end)
+            else:
+                pass
 # ==============================
 # Funciones de Comparacion
 # ==============================

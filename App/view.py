@@ -139,13 +139,22 @@ def optionFive():
     return -1
 '''
 
-'''def optionSeven():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionSeven():
+    ageRange = input("Ingrese el rango de edad (0-10, 11-20, 21-30, 31-40, 41-50, 51-60, 60+): ")
+    initStation,finalStation,result = controller.routeRecomendations(cont,ageRange)
+    print("La estación de inicio es: " + initStation)
+    print("La estación final es: " + finalStation)
+    if result is not None:
+        pathlen = stack.size(result)
+        print("La ruta consta de " + str(pathlen) + " estaciones.")
+        print("La ruta para ir de " + initStation + " hasta " + finalStation + " es: ")
+        while (not stack.isEmpty(result)):
+            stop = stack.pop(result)
+            print(stop['vertexA'] + " ---> " + stop['vertexB'])
+    else:
+        print("No hay camino")
     return -1
-'''
+
 
 
 '''def optionEight():
