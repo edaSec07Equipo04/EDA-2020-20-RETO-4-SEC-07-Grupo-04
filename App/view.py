@@ -29,6 +29,7 @@ import sys
 import config
 from App import controller
 from DISClib.ADT import stack
+from DISClib.ADT import list as lt
 import timeit
 assert config
 
@@ -139,13 +140,31 @@ def optionFive():
     return -1
 '''
 
-'''def optionSeven():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionSeven():
+    ageRange = input("Ingrese el rango de edad (0-10, 11-20, 21-30, 31-40, 41-50, 51-60, 60+): ")
+    result = controller.routeRecomendations(cont,ageRange)
+    if result == -1:
+        print("No hay rutas para ese rango de edad.")
+    else:
+        if lt.size(result) == 0:
+            print("No hay rutas en este rango de edad")
+        else:
+            initStation = lt.getElement(result,1)
+            finalStation = lt.getElement(result,lt.size(result))
+            print("==================================")
+            print("Estación inicial: " + initStation)
+            print("\nEstaciones intermedias: ")
+            if lt.size(result) == 2:
+                print("- No hay estaciones intermedias")
+            else:
+                for i in range(2,lt.size(result)):
+                    print("\n- " + lt.getElement(result,i))
+            
+            print("\nEstación final: " + finalStation)
+            print("==================================")
+            
     return -1
-'''
+
 
 
 '''def optionEight():
