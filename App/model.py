@@ -33,6 +33,7 @@ from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
+from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
 from datetime import date
 assert config
@@ -174,7 +175,9 @@ def routeRecomendations(citibike,ageRange):
     lstExit = lt.newList("ARRAY_LIST",compareValues)
     lstArrive = lt.newList("ARRAY_LIST",compareValues)
     findStationsInRange(citibike,ageRange,lstExit,lstArrive)
-    data = {'degree':None,
+    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:
+        return -1
+    data = {'degree':None, #Lugar donde se guardan los datos obtenidos
             'indegree':None}
     data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
     data['indegree'] = om.newMap(omaptype='RBT',comparefunction=compareValues)
@@ -201,21 +204,29 @@ def routeRecomendations(citibike,ageRange):
     minimumCostPaths(citibike,initStation)
     path = minimumCostPath(citibike,finalStation)
 
-    changeInfo(citibike,lstExitMax,1)
-    changeInfo(citibike,lstArriveMax,1)
-
-    initStation = lt.getElement(lstExitMax,1)
-    finalStation = lt.getElement(lstArriveMax,1)
+    lstPath = lt.newList("ARRAY_LIST",compareValues)
+    if path is not None:
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            if lt.isPresent(lstPath,stop['vertexA']) == 0:
+                lt.addLast(lstPath,stop['vertexA'])
+            else:
+                pass
+            if lt.isPresent(lstPath,stop['vertexB']) == 0:
+                lt.addLast(lstPath,stop['vertexB'])
+            else:
+                pass
+    else:
+        pass
     
-    return initStation,finalStation,path
+    pos = 1
+    while pos < (lt.size(lstPath)+1):
+        changeInfo(citibike,lstPath,pos)
+        pos += 1
 
-def minimumCostPaths(citibike,station):
-    citibike['paths'] = djk.Dijkstra(citibike['graph'],station)
-    return citibike
+    return lstPath
+##################################################
 
-def minimumCostPath(citibike,station):
-    path = djk.pathTo(citibike['paths'],station)
-    return path
 
 def numSCC(graph):
     """
@@ -237,7 +248,22 @@ def stationsSize(graph):
 # ==============================
 # Funciones Helper
 # ==============================
+def minimumCostPaths(citibike,station):
+    """
+    Calcula los caminos de costo mínimo desde la estación
+    a todos los demas vertices del grafo
+    """
+    citibike['paths'] = djk.Dijkstra(citibike['graph'],station)
+    return citibike
 
+def minimumCostPath(citibike,station):
+    """
+    Retorna el camino de costo mínimo entre la estacion de inicio
+    y la estacion destino
+    Se debe ejecutar primero la funcion minimumCostPaths
+    """
+    path = djk.pathTo(citibike['paths'],station)
+    return path
 
 def changeInfo(citibike,lst,pos):
     """
@@ -462,11 +488,14 @@ def newTotalEntry(total, station):
     return totalEntry
 
 def findStationsInRange(citibike,ageRange,lst1,lst2):
-    today = date.today()
-    year = today.year
-    iterator = it.newIterator(citibike['stations'])
+    """
+    Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
+    """
+    today = date.today()   
+    year = today.year    #Obtenemos el año actual
+    iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
     if ageRange[0] == "0":
-        initRange = ageRange[0]
+        initRange = int(ageRange[0])
         finalRange = int(ageRange[2]+ageRange[3])
     elif ageRange == "60+" or ageRange=="60 +":
         initRange = 60
@@ -483,11 +512,11 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
             p1 = lt.isPresent(lst1,start)
             p2 = lt.isPresent(lst2,end)
             if p1 == 0:
-                lt.addLast(lst1,start)
+                lt.addLast(lst1,start)  #Se añade a la lista de salidas
             else:
                 pass
             if p2 == 0:
-                lt.addLast(lst2,end)
+                lt.addLast(lst2,end) #Se añade a la lista de llegadas
             else:
                 pass
 # ==============================
