@@ -33,7 +33,9 @@ from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
+from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
+from datetime import date
 assert config
 
 """
@@ -50,7 +52,8 @@ def newAnalyzer():
     try:
         citibike = {
                     'graph': None,
-                    'stations': None             
+                    'stations': None,   
+                    'paths':None          
                     }
 
         citibike['graph']=gr.newGraph(datastructure='ADJ_LIST',
@@ -169,7 +172,105 @@ def stationsbyres(citibike):
     vertnum = gr.vertices(citibike['graph']) # Número ver
 
     
+
+
+####################################################################
+
+
+########## Requerimiento 5 - Grupal ##########
+def routeRecomendations(citibike,ageRange):     
+    lstExit = lt.newList("ARRAY_LIST",compareValues)
+    lstArrive = lt.newList("ARRAY_LIST",compareValues)
+    findStationsInRange(citibike,ageRange,lstExit,lstArrive)
+    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:
+        return -1
+    data = {'degree':None, #Lugar donde se guardan los datos obtenidos
+            'indegree':None}
+    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data['indegree'] = om.newMap(omaptype='RBT',comparefunction=compareValues)
+    itExit = it.newIterator(lstExit)
+    itArrive = it.newIterator(lstArrive)
+    while it.hasNext(itExit):
+        station = it.next(itExit)
+        vertexDegree = gr.outdegree(citibike['graph'],station)
+        updateDegreeIndex(data['degree'],vertexDegree,station)
+    while it.hasNext(itArrive):
+        station = it.next(itArrive)
+        vertexIndegree = gr.indegree(citibike['graph'],station)
+        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
     
+    lstExitMax = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstExitMax,'d')
+
+    lstArriveMax = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstArriveMax,'i')
+    
+    initStation = lt.getElement(lstExitMax,1)
+    finalStation = lt.getElement(lstArriveMax,1)
+
+    minimumCostPaths(citibike,initStation)
+    path = minimumCostPath(citibike,finalStation)
+
+    lstPath = lt.newList("ARRAY_LIST",compareValues)
+    if path is not None:
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            if lt.isPresent(lstPath,stop['vertexA']) == 0:
+                lt.addLast(lstPath,stop['vertexA'])
+            else:
+                pass
+            if lt.isPresent(lstPath,stop['vertexB']) == 0:
+                lt.addLast(lstPath,stop['vertexB'])
+            else:
+                pass
+    else:
+        pass
+    
+    pos = 1
+    while pos < (lt.size(lstPath)+1):
+        changeInfo(citibike,lstPath,pos)
+        pos += 1
+
+    return lstPath
+##################################################
+
+
+def numSCC(graph):
+    """
+    Informa cuántos componentes fuertemente conectados se encontraron
+    """
+    sc = scc.KosarajuSCC(graph)
+    return scc.connectedComponents(sc)
+
+def sameCC(graph,station1,station2):
+    """
+    Informa si dos estaciones están en el mismo componente conectado.
+    """
+    sc = scc.KosarajuSCC(graph)
+    return scc.stronglyConnected(sc,station1,station2)
+
+def stationsSize(graph):
+    return lt.size(graph['stations'])
+
+# ==============================
+# Funciones Helper
+# ==============================
+def minimumCostPaths(citibike,station):
+    """
+    Calcula los caminos de costo mínimo desde la estación
+    a todos los demas vertices del grafo
+    """
+    citibike['paths'] = djk.Dijkstra(citibike['graph'],station)
+    return citibike
+
+def minimumCostPath(citibike,station):
+    """
+    Retorna el camino de costo mínimo entre la estacion de inicio
+    y la estacion destino
+    Se debe ejecutar primero la funcion minimumCostPaths
+    """
+    path = djk.pathTo(citibike['paths'],station)
+    return path
 
 
 
@@ -401,29 +502,38 @@ def newTotalEntry(total, station):
     totalEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
     return totalEntry
 
-####################################################################
-
-def numSCC(graph):
+def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
-    Informa cuántos componentes fuertemente conectados se encontraron
+    Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
     """
-    sc = scc.KosarajuSCC(graph)
-    return scc.connectedComponents(sc)
-
-def sameCC(graph,station1,station2):
-    """
-    Informa si dos estaciones están en el mismo componente conectado.
-    """
-    sc = scc.KosarajuSCC(graph)
-    return scc.stronglyConnected(sc,station1,station2)
-
-def stationsSize(graph):
-    return lt.size(graph['stations'])
-
-# ==============================
-# Funciones Helper
-# ==============================
-
+    today = date.today()   
+    year = today.year    #Obtenemos el año actual
+    iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
+    if ageRange[0] == "0":
+        initRange = int(ageRange[0])
+        finalRange = int(ageRange[2]+ageRange[3])
+    elif ageRange == "60+" or ageRange=="60 +":
+        initRange = 60
+        finalRange = year - 1870
+    else: 
+        initRange = int(ageRange[0]+ageRange[1])
+        finalRange = int(ageRange[3]+ageRange[4])
+    while it.hasNext(iterator):
+        info = it.next(iterator)
+        birthYear = int(info['birth year'])
+        if year - birthYear >= initRange and year - birthYear <= finalRange:
+            start = info['start station id']
+            end = info['end station id']
+            p1 = lt.isPresent(lst1,start)
+            p2 = lt.isPresent(lst2,end)
+            if p1 == 0:
+                lt.addLast(lst1,start)  #Se añade a la lista de salidas
+            else:
+                pass
+            if p2 == 0:
+                lt.addLast(lst2,end) #Se añade a la lista de llegadas
+            else:
+                pass
 # ==============================
 # Funciones de Comparacion
 # ==============================
