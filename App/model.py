@@ -162,7 +162,22 @@ def topStations(citibike):
 
     return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
     
+# ************************
+# Requerimiento 04-JUAN R
+
+def stationsbyres(citibike):
+    vertnum = gr.vertices(citibike['graph']) # Número ver
+
     
+    
+
+
+
+    return lista
+
+
+
+
 
 def changeInfo(citibike,lst,pos):
     """

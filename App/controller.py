@@ -100,3 +100,7 @@ def topStations(citibike):
     - Top 3 estaciones menos utilizadas
     """
     return model.topStations(citibike)
+
+##Req 04##
+def resitencia(citibike):
+    return model.stationsbyres(citibike)
