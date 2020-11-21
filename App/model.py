@@ -223,8 +223,11 @@ def routeRecomendations(citibike,ageRange):
     while pos < (lt.size(lstPath)+1):
         changeInfo(citibike,lstPath,pos)
         pos += 1
-
-    return lstPath
+    lstReturn = lt.newList("ARRAY_LIST")
+    lt.addLast(lstReturn,initStation)
+    lt.addLast(lstReturn,finalStation)
+    lt.addLast(lstReturn,lstPath)
+    return lstReturn
 ##################################################
 
 
@@ -493,20 +496,20 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     
     iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
-    if ageRange[0] == "0":
-        initRange = int(ageRange[0])
-        finalRange = int(ageRange[2]+ageRange[3])
-    elif ageRange == "60+" or ageRange=="60 +":
-        initRange = 60
-        finalRange = year - 1870
-    else: 
-        initRange = int(ageRange[0]+ageRange[1])
-        finalRange = int(ageRange[3]+ageRange[4])
     while it.hasNext(iterator):
         info = it.next(iterator)
         ocurredDate = info['starttime']
         year=int(ocurredDate[:4])
         birthYear = int(info['birth year'])
+        if ageRange[0] == "0":
+            initRange = int(ageRange[0])
+            finalRange = int(ageRange[2]+ageRange[3])
+        elif ageRange == "60+" or ageRange=="60 +":
+            initRange = 60
+            finalRange = 120
+        else: 
+            initRange = int(ageRange[0]+ageRange[1])
+            finalRange = int(ageRange[3]+ageRange[4])
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
             end = info['end station id']

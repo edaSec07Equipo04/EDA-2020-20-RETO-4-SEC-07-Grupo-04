@@ -142,12 +142,20 @@ def optionFive():
 
 def optionSeven():
     ageRange = input("Ingrese el rango de edad (0-10, 11-20, 21-30, 31-40, 41-50, 51-60, 60+): ")
-    result = controller.routeRecomendations(cont,ageRange)
-    if result == -1:
+    ret = controller.routeRecomendations(cont,ageRange)
+    if ret == -1:
         print("No hay rutas para ese rango de edad.")
     else:
+        iStation = lt.getElement(ret,1)
+        fStation = lt.getElement(ret,2)
+        result = lt.getElement(ret,3)
         if lt.size(result) == 0:
-            print("No hay rutas en este rango de edad")
+            print("==================================")
+            print("Estación inicial: " + iStation)
+            print("\nEstación final: " + fStation)
+            print("No camino entre "+iStation +" y "+fStation)
+            print("==================================")
+            
         else:
             initStation = lt.getElement(result,1)
             finalStation = lt.getElement(result,lt.size(result))
