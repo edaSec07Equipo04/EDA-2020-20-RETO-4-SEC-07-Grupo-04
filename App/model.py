@@ -35,7 +35,7 @@ from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
-from datetime import date
+import datetime 
 assert config
 
 """
@@ -491,8 +491,7 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
     """
-    today = date.today()   
-    year = today.year    #Obtenemos el año actual
+    
     iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
     if ageRange[0] == "0":
         initRange = int(ageRange[0])
@@ -505,6 +504,8 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
         finalRange = int(ageRange[3]+ageRange[4])
     while it.hasNext(iterator):
         info = it.next(iterator)
+        ocurredDate = info['starttime']
+        year=int(ocurredDate[:4])
         birthYear = int(info['birth year'])
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
