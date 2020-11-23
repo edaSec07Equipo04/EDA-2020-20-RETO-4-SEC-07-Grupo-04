@@ -191,13 +191,13 @@ def optionSeven():
     return -1
 '''
 
-'''def optionTen():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionTen():
+    """ id = input("Ingrese el ID a consultar: ")
+    date = input('Ingrese la fecha a consultar: ') """
+    controller.bikeMaintenance(cont,'31956','2018-01-21')
+    
     return -1
-'''
+
 
 """
 Menu principal

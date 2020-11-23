@@ -26,6 +26,7 @@
 
 import config as cf
 from App import model
+import datetime
 import csv
 import os 
 
@@ -103,3 +104,7 @@ def topStations(citibike):
 
 def routeRecomendations(citibike,ageRange):
     return model.routeRecomendations(citibike,ageRange)
+
+def bikeMaintenance(citibike,bikeId,date):
+    date = datetime.datetime.strptime(date, '%Y-%m-%d')
+    return model.bikeMaintenance(citibike,bikeId,date.date())
