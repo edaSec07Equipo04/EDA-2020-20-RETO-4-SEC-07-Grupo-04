@@ -153,7 +153,7 @@ def optionSeven():
             print("==================================")
             print("Estación inicial: " + iStation)
             print("\nEstación final: " + fStation)
-            print("No camino entre "+iStation +" y "+fStation)
+            print("No hay camino entre "+iStation +" y "+fStation)
             print("==================================")
             
         else:
