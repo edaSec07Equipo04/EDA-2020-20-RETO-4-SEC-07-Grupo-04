@@ -192,10 +192,17 @@ def optionSeven():
 '''
 
 def optionTen():
-    """ id = input("Ingrese el ID a consultar: ")
-    date = input('Ingrese la fecha a consultar: ') """
-    controller.bikeMaintenance(cont,'31956','2018-01-21')
-    
+    id = input("Ingrese el ID a consultar: ")
+    date = input('Ingrese la fecha a consultar (AAAA-MM-DD): ')
+    lstStations,usageTime,timeStopped = controller.bikeMaintenance(cont,id,date)
+    print("==========================================================")
+    print("* El tiempo total de uso de " + id + " en " + date + " fue: ")
+    controller.convertSecondsToDate(usageTime)
+    print("* El tiempo total estacionada fue: ")
+    controller.convertSecondsToDate(timeStopped)
+    print("* Estaciones por las que la bicicleta " + id + " pasó en la fecha " + date+ ":")
+    controller.printListContent(lstStations)
+    print("==========================================================")
     return -1
 
 

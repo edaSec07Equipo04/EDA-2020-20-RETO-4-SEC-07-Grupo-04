@@ -108,3 +108,9 @@ def routeRecomendations(citibike,ageRange):
 def bikeMaintenance(citibike,bikeId,date):
     date = datetime.datetime.strptime(date, '%Y-%m-%d')
     return model.bikeMaintenance(citibike,bikeId,date.date())
+
+def convertSecondsToDate(seconds):
+    return model.convertSecondsToDate(seconds)
+
+def printListContent(lst):
+    return model.printListContent(lst)

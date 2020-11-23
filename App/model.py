@@ -238,7 +238,8 @@ def bikeMaintenance(citibike,bikeId,date):
     stationsInDate(citibike,bikeId,date,lstResults,lstStations)
     usageTimeResult = usageTime(lstResults)
     timeStoppedResult = timeStopped(lstResults)
-    print(timeStoppedResult)
+    return lstStations,usageTimeResult,timeStoppedResult
+    
 
 
 def numSCC(graph):
@@ -297,18 +298,32 @@ def timeStopped(lst):
         while it.hasNext(iterator):
             station = it.next(iterator)
             station2 = it.next(iterator)
-            ocurredS2Date = station['starttime']
+            ocurredS2Date = station2['starttime']
             ocurredS2Date = ocurredS2Date[:19]
             tripS2Date = datetime.datetime.strptime(ocurredS2Date, '%Y-%m-%d %H:%M:%S')
             tripS2Time = time.mktime(tripS2Date.timetuple())
             ocurredS1Date = station['stoptime']
             ocurredS1Date = ocurredS1Date[:19]
             tripS1Date = datetime.datetime.strptime(ocurredS1Date, '%Y-%m-%d %H:%M:%S')
-            tripS1Time = time.mktime(tripS2Date.timetuple())
+            tripS1Time = time.mktime(tripS1Date.timetuple())
             r = tripS2Time - tripS1Time
             result += r
-            lt.removeFirst(lst)
-            lt.removeFirst(lst)
+            lt.removeFirst
+    return result
+
+def convertSecondsToDate(seconds):
+    days = seconds//(24*60*60)
+    seconds = seconds % (24*60*60)
+    hours = seconds // (60*60)
+    seconds = seconds %(60*60)
+    minutes = seconds // 60 
+    seconds = seconds % 60
+    print('Días: {} - Horas: {} - Minutos: {} - Segundos: {}'.format(int(days),int(hours),int(minutes),int(seconds)))
+
+def printListContent(lst):
+    iterator = it.newIterator(lst)
+    while it.hasNext(iterator):
+        print("- " + it.next(iterator))
 
 def minimumCostPaths(citibike,station):
     """
