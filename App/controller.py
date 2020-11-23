@@ -102,7 +102,13 @@ def topStations(citibike):
     return model.topStations(citibike)
 
 ##Req 04##
-def resitencia(citibike):
-    return model.stationsbyres(citibike)
+def resitencia(citibike,idstation,time_max ):
+    return model.stationsbyres(citibike,idstation,time_max )
+
+
+
+
+
+
 def routeRecomendations(citibike,ageRange):
     return model.routeRecomendations(citibike,ageRange)

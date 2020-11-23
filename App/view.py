@@ -233,7 +233,7 @@ while True:
         #OJO CON TIEMPO DE EJECUCION#
        # tiempoEjecución = timeit.timeit(optionSix, number=1)
        # print("El tiempo de ejecución de la función fue: " + str(tiempoEjecución))
-        print(controller.resitencia(cont))
+        print(controller.resitencia(cont,0,0))
     elif int(opcion[0])==7:
 
         #OJO CON TIEMPO DE EJECUCION#
