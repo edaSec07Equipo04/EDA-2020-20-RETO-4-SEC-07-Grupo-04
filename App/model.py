@@ -172,7 +172,11 @@ def topStations(citibike):
 
 
 ########## Requerimiento 5 - Grupal ##########
-def routeRecomendations(citibike,ageRange):     
+def routeRecomendations(citibike,ageRange):
+    """
+    Informa la estación desde la cual las personas en el rango ingresado inician más viajes. 
+    La estación donde terminan más viajes personas en rango y el camino mas corto en tiempo entre dicho par de estaciones.
+    """     
     lstExit = lt.newList("ARRAY_LIST",compareValues)
     lstArrive = lt.newList("ARRAY_LIST",compareValues)
     findStationsInRange(citibike,ageRange,lstExit,lstArrive)
@@ -233,6 +237,10 @@ def routeRecomendations(citibike,ageRange):
 
 ######## Requerimiento 8 - Bono ###########
 def bikeMaintenance(citibike,bikeId,date):
+    """
+    Dado un identificador de bicicleta y una fecha específica, retorna el recorrido realizado. 
+    Esto es, todas las estaciones por las que ha pasado, indicando el tiempo total de uso y el tiempo total estacionada.
+    """ 
     lstResults=lt.newList("ARRAY_LIST")
     lstStations = lt.newList("ARRAY_LIST",compareValues)
     stationsInDate(citibike,bikeId,date,lstResults,lstStations)
@@ -263,6 +271,9 @@ def stationsSize(graph):
 # Funciones Helper
 # ==============================
 def usageTime(lstResults):
+    """
+    Calcula el tiempo de uso de una bicicleta
+    """
     iterator=it.newIterator(lstResults)
     result = 0
     while it.hasNext(iterator):
@@ -275,7 +286,10 @@ def usageTime(lstResults):
             result += r
     return result
 
-def stationsInDate(citibike,bikeId,date,lst,lst2):           
+def stationsInDate(citibike,bikeId,date,lst,lst2):
+    """
+    Identifica las estaciones por las cuales la bicibleta circuló en la fecha indicada.
+    """           
     iterator = it.newIterator(citibike['stations'])
     while it.hasNext(iterator):
         info = it.next(iterator)
@@ -290,6 +304,9 @@ def stationsInDate(citibike,bikeId,date,lst,lst2):
                 lt.addLast(lst2,info['end station name'])
 
 def timeStopped(lst):
+    """
+    Calcula el tiempo que una bicicleta estuvo detenida en la fecha indicada
+    """
     result = 0
     if lt.size(lst) == 1:
         return result
@@ -308,10 +325,13 @@ def timeStopped(lst):
             tripS1Time = time.mktime(tripS1Date.timetuple())
             r = tripS2Time - tripS1Time
             result += r
-            lt.removeFirst
+            lt.removeFirst(lst)
     return result
 
 def convertSecondsToDate(seconds):
+    """
+    Transforma segundos a días, horas, minutos y segundos.
+    """
     days = seconds//(24*60*60)
     seconds = seconds % (24*60*60)
     hours = seconds // (60*60)
@@ -321,6 +341,9 @@ def convertSecondsToDate(seconds):
     print('Días: {} - Horas: {} - Minutos: {} - Segundos: {}'.format(int(days),int(hours),int(minutes),int(seconds)))
 
 def printListContent(lst):
+    """
+    Imprime el contenido de una lista
+    """
     iterator = it.newIterator(lst)
     while it.hasNext(iterator):
         print("- " + it.next(iterator))
