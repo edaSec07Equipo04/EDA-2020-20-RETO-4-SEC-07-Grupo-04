@@ -142,12 +142,20 @@ def optionFive():
 
 def optionSeven():
     ageRange = input("Ingrese el rango de edad (0-10, 11-20, 21-30, 31-40, 41-50, 51-60, 60+): ")
-    result = controller.routeRecomendations(cont,ageRange)
-    if result == -1:
+    ret = controller.routeRecomendations(cont,ageRange)
+    if ret == -1:
         print("No hay rutas para ese rango de edad.")
     else:
+        iStation = lt.getElement(ret,1)
+        fStation = lt.getElement(ret,2)
+        result = lt.getElement(ret,3)
         if lt.size(result) == 0:
-            print("No hay rutas en este rango de edad")
+            print("==================================")
+            print("Estación inicial: " + iStation)
+            print("\nEstación final: " + fStation)
+            print("No hay camino entre "+iStation +" y "+fStation)
+            print("==================================")
+            
         else:
             initStation = lt.getElement(result,1)
             finalStation = lt.getElement(result,lt.size(result))
@@ -183,13 +191,20 @@ def optionSeven():
     return -1
 '''
 
-'''def optionTen():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionTen():
+    id = input("Ingrese el ID a consultar: ")
+    date = input('Ingrese la fecha a consultar (AAAA-MM-DD): ')
+    lstStations,usageTime,timeStopped = controller.bikeMaintenance(cont,id,date)
+    print("==========================================================")
+    print("* El tiempo total de uso de " + id + " en " + date + " fue: ")
+    controller.convertSecondsToDate(usageTime)
+    print("* El tiempo total estacionada fue: ")
+    controller.convertSecondsToDate(timeStopped)
+    print("* Estaciones por las que la bicicleta " + id + " pasó en la fecha " + date+ ":")
+    controller.printListContent(lstStations)
+    print("==========================================================")
     return -1
-'''
+
 
 """
 Menu principal
