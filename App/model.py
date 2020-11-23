@@ -35,6 +35,7 @@ from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
+from math import radians, cos, sin, asin, sqrt
 import datetime 
 import time
 assert config
@@ -235,19 +236,69 @@ def routeRecomendations(citibike,ageRange):
     return lstReturn
 ##################################################
 
+########## Requerimiento 6 - Grupal ##########
+def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
+    iterator = it.newIterator(citibike['stations'])
+    startDistance = 1000000
+    startStationId = ''
+    endDistance = 1000000
+    endStationId = ''
+    while it.hasNext(iterator):
+        station = it.next(iterator)
+        startStationLatitude = float(station['start station latitude'])
+        startStationLongitude = float(station['start station longitude'])
+        endStationLatitude = float(station['end station latitude'])
+        endStationLongitude = float(station['end station longitude'])
+        startDistanceResult = distance(lat1,startStationLatitude,lon1,startStationLongitude)
+        if startDistanceResult < startDistance:
+            startDistance = startDistanceResult
+            startStationId = station['start station id']
+        endDistanceResult = distance(lat2,endStationLatitude,lon2,endStationLongitude)
+        if endDistanceResult < endDistance:
+            endDistance = endDistanceResult
+            endStationId = station['end station id']
+    minimumCostPaths(citibike,startStationId)
+    path = minimumCostPath(citibike,endStationId)
+    lstPath = lt.newList("ARRAY_LIST",compareValues)
+    time = 0
+    if path is not None:
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            time += stop['weight']
+            if lt.isPresent(lstPath,stop['vertexA']) == 0:
+                lt.addLast(lstPath,stop['vertexA'])
+            else:
+                pass
+            if lt.isPresent(lstPath,stop['vertexB']) == 0:
+                lt.addLast(lstPath,stop['vertexB'])
+            else:
+                pass
+    else:
+        pass
+    pos = 1
+    while pos < (lt.size(lstPath)+1):
+        changeInfo(citibike,lstPath,pos)
+        pos += 1
+    startStation = lt.getElement(lstPath,1)
+    endStation = lt.getElement(lstPath,lt.size(lstPath))
+    return startStation,endStation,time,lstPath
+
+
+
+##################################################
 ######## Requerimiento 8 - Bono ###########
 def bikeMaintenance(citibike,bikeId,date):
     """
     Dado un identificador de bicicleta y una fecha específica, retorna el recorrido realizado. 
     Esto es, todas las estaciones por las que ha pasado, indicando el tiempo total de uso y el tiempo total estacionada.
     """ 
-    lstResults=lt.newList("ARRAY_LIST")
-    lstStations = lt.newList("ARRAY_LIST",compareValues)
+    lstResults=lt.newList("ARRAY_LIST") #Estaciones con sus datos completos (bikeid, stoptime, starttime, etc.)
+    lstStations = lt.newList("ARRAY_LIST",compareValues) #Nombres de las estaciones por las cuales circuló
     stationsInDate(citibike,bikeId,date,lstResults,lstStations)
     usageTimeResult = usageTime(lstResults)
-    timeStoppedResult = timeStopped(lstResults)
-    return lstStations,usageTimeResult,timeStoppedResult
-    
+    timeStopped = 86400-usageTimeResult
+    return lstStations,usageTimeResult,timeStopped
+##############################################################    
 
 
 def numSCC(graph):
@@ -270,6 +321,21 @@ def stationsSize(graph):
 # ==============================
 # Funciones Helper
 # ==============================
+def distance(lat1,lat2,lon1,lon2):
+    """
+    Calcula la distancia entre dos puntos
+    """
+    lon1 = radians(lon1) 
+    lon2 = radians(lon2) 
+    lat1 = radians(lat1) 
+    lat2 = radians(lat2)
+    dlon = lon2 - lon1  
+    dlat = lat2 - lat1 
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371
+    return(c * r) 
+
 def usageTime(lstResults):
     """
     Calcula el tiempo de uso de una bicicleta
@@ -303,30 +369,6 @@ def stationsInDate(citibike,bikeId,date,lst,lst2):
             if lt.isPresent(lst2,info['end station name']) == 0:
                 lt.addLast(lst2,info['end station name'])
 
-def timeStopped(lst):
-    """
-    Calcula el tiempo que una bicicleta estuvo detenida en la fecha indicada
-    """
-    result = 0
-    if lt.size(lst) == 1:
-        return result
-    else:
-        iterator = it.newIterator(lst)
-        while it.hasNext(iterator):
-            station = it.next(iterator)
-            station2 = it.next(iterator)
-            ocurredS2Date = station2['starttime']
-            ocurredS2Date = ocurredS2Date[:19]
-            tripS2Date = datetime.datetime.strptime(ocurredS2Date, '%Y-%m-%d %H:%M:%S')
-            tripS2Time = time.mktime(tripS2Date.timetuple())
-            ocurredS1Date = station['stoptime']
-            ocurredS1Date = ocurredS1Date[:19]
-            tripS1Date = datetime.datetime.strptime(ocurredS1Date, '%Y-%m-%d %H:%M:%S')
-            tripS1Time = time.mktime(tripS1Date.timetuple())
-            r = tripS2Time - tripS1Time
-            result += r
-            lt.removeFirst(lst)
-    return result
 
 def convertSecondsToDate(seconds):
     """

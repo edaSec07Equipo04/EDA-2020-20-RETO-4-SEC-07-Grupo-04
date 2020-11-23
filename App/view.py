@@ -46,6 +46,8 @@ operación seleccionada.
 servicefile = ''
 initialStation = None
 recursionLimit = 20000
+bold = '\033[1m'
+end = '\033[0m'
 
 # ___________________________________________________
 #  Menu principal
@@ -175,13 +177,22 @@ def optionSeven():
 
 
 
-'''def optionEight():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionEight():
+    lat1 = float(input("Ingrese la latitud de su ubicación actual: "))
+    lon1 = float(input("Ingrese la longitud de su ubicación actual: "))
+    lat2 = float(input("Ingrese la latitud del lugar que quiere visitar: "))
+    lon2 = float(input("Ingrese la longitud del lugar que quiere visitar: "))
+    startStation,endStation,time,path=controller.interestingRoutes(cont,lat1,lon1,lat2,lon2)
+    print(bold+"=========================================================="+end)
+    print(bold+"Estación más cercana a su ubicación: "+end + startStation)
+    print(bold+"Estación más cercana al sitio que quiere visitar: "+end+endStation)
+    print(bold+"Tiempo estimado de viaje: "+end)
+    controller.convertSecondsToDate(time)
+    print(bold+"Estaciones de la ruta: "+end)
+    controller.printListContent(path)
+    print(bold+"=========================================================="+end)
     return -1
-'''
+
 
 '''def optionNine():
     maxvert, maxdeg = controller.servedRoutes(cont)
@@ -195,14 +206,14 @@ def optionTen():
     id = input("Ingrese el ID a consultar: ")
     date = input('Ingrese la fecha a consultar (AAAA-MM-DD): ')
     lstStations,usageTime,timeStopped = controller.bikeMaintenance(cont,id,date)
-    print("==========================================================")
-    print("* El tiempo total de uso de " + id + " en " + date + " fue: ")
+    print(bold+"=========================================================="+end)
+    print(bold+"El tiempo total de uso de " + id + " en " + date + " fue: "+end)
     controller.convertSecondsToDate(usageTime)
-    print("* El tiempo total estacionada fue: ")
+    print(bold+"El tiempo total estacionada fue: "+end)
     controller.convertSecondsToDate(timeStopped)
-    print("* Estaciones por las que la bicicleta " + id + " pasó en la fecha " + date+ ":")
+    print(bold+"Estaciones por las que la bicicleta "+ id + " pasó en la fecha " + date+ ":"+end)
     controller.printListContent(lstStations)
-    print("==========================================================")
+    print(bold+"=========================================================="+end)
     return -1
 
 

@@ -117,6 +117,9 @@ def bikeMaintenance(citibike,bikeId,date):
     date = datetime.datetime.strptime(date, '%Y-%m-%d')
     return model.bikeMaintenance(citibike,bikeId,date.date())
 
+def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
+    return model.interestingRoutes(citibike,lat1,lon1,lat2,lon2)
+
 def convertSecondsToDate(seconds):
     """
     Transforma segundos a días, horas, minutos y segundos.
