@@ -30,6 +30,7 @@ from DISClib.ADT import list as lt
 from DISClib.DataStructures import listiterator as it
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.Algorithms.Graphs import dfs as dfs
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
@@ -239,7 +240,47 @@ def topStations(citibike):
     tM3 = lt.getElement(lstTotal,3)
 
     return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
-        
+###############################################
+
+   
+# ************************
+# Requerimiento 04-JUAN R
+
+def stationsbyres(citibike,idstation,time_max):
+    vertnum = gr.vertices(citibike['graph']) # Vertices
+    iterator = it.newIterator(vertnum)
+    
+    ver= ""
+    while it.hasNext(iterator):
+        stations = it.next(iterator)
+        #print(stations)
+        if stations == "72":
+            print ("Entre!!")
+            ver = stations
+
+    a = dfs.DepthFirstSearch(citibike['graph'],ver)
+
+    
+    b = dfs.pathTo(a,"128")
+    
+
+
+
+
+    #estaciones = gr.vertices(citibike['stations'])
+
+    #arcos = gr.edges(citibike['graph'])
+    #a = citibike['stations']
+    #b=a[info['start station id']]
+    
+
+
+
+
+
+
+    
+    return b
 
 ####################################################################
 
@@ -529,6 +570,14 @@ def minimumCostPath(citibike,station):
     """
     path = djk.pathTo(citibike['paths'],station)
     return path
+
+
+
+    return lista
+
+
+
+
 
 def changeInfo(citibike,lst,pos):
     """

@@ -257,9 +257,9 @@ while True:
     elif int(opcion[0])==6:
 
         #OJO CON TIEMPO DE EJECUCION#
-        tiempoEjecución = timeit.timeit(optionSix, number=1)
-        print("El tiempo de ejecución de la función fue: " + str(tiempoEjecución))
-
+       # tiempoEjecución = timeit.timeit(optionSix, number=1)
+       # print("El tiempo de ejecución de la función fue: " + str(tiempoEjecución))
+        print(controller.resitencia(cont,0,0))
     elif int(opcion[0])==7:
 
         #OJO CON TIEMPO DE EJECUCION#
