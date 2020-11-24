@@ -112,21 +112,21 @@ def optionFive():
     eM1,eM2,eM3=result[0],result[1],result[2]
     aM1,aM2,aM3=result[3],result[4],result[5]
     tM1,tM2,tM3=result[6],result[7],result[8]
-    print("======== Top 3 de salida ========")
+    print(bold+"======== Top 3 de salida ========"+end)
     print("1. "+"\t"+str(eM1))
     print("2. "+"\t"+str(eM2))
     print("3. "+"\t"+str(eM3))
-    print("=================================")
-    print("======== Top 3 de llegada ========")
+    print(bold+"================================="+end)
+    print(bold+"======== Top 3 de llegada ========"+end)
     print("1. "+"\t"+str(aM1))
     print("2. "+"\t"+str(aM2))
     print("3. "+"\t"+str(aM3))
-    print("=================================")
-    print("======== Tres estaciones menos utilizadas ========")
+    print(bold+"================================="+end)
+    print(bold+"======== Tres estaciones menos utilizadas ========"+end)
     print("1. "+"\t"+str(tM1))
     print("2. "+"\t"+str(tM2))
     print("3. "+"\t"+str(tM3))
-    print("=================================")
+    print(bold+"================================="+end)
 
 
 '''def optionSix():
