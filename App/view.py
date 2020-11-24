@@ -165,7 +165,7 @@ def optionSeven():
             print("Estación inicial: " + initStation)
             print("\nEstaciones intermedias: ")
             if lt.size(result) == 2:
-                print("- No hay estaciones intermedias")
+                print("- No hay estaciones intermedias, se puede ir directamente.")
             else:
                 for i in range(2,lt.size(result)):
                     print("\n- " + lt.getElement(result,i))

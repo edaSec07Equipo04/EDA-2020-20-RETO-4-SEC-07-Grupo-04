@@ -215,16 +215,19 @@ def topStations(citibike):
     lstTotal = lt.newList("ARRAY_LIST")
     count = 0
     while count < 3:
-        obtainValues(citibike,lstExit,'e')
-        obtainValues(citibike,lstArrive,'a')
-        obtainValues(citibike,lstTotal,'t')
+        obtainValues(citibike,lstExit,'e') #Se obtienen las estaciones con más salidas
+        obtainValues(citibike,lstArrive,'a') #Se obtienen las estaciones con más llegadas
+        obtainValues(citibike,lstTotal,'t') #Se obtienen las estaciones menos usadas
         count += 1
+
     pos = 1
-    while pos < 4:
+    while pos < 4:       #Se intercambia el ID por el nombre correspondiente de la estación
         changeInfo(citibike,lstExit,pos)
         changeInfo(citibike,lstArrive,pos)
         changeInfo(citibike,lstTotal,pos)
         pos+=1
+
+    #Se obtienen los resultados finales    
     eM1 = lt.getElement(lstExit,1)
     eM2 = lt.getElement(lstExit,2)
     eM3 = lt.getElement(lstExit,3)
@@ -249,56 +252,62 @@ def routeRecomendations(citibike,ageRange):
     """     
     lstExit = lt.newList("ARRAY_LIST",compareValues)
     lstArrive = lt.newList("ARRAY_LIST",compareValues)
-    findStationsInRange(citibike,ageRange,lstExit,lstArrive)
-    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:
+    findStationsInRange(citibike,ageRange,lstExit,lstArrive)  #Se guardan los ID de las estaciones dentro del rango
+    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:  #Si no se encuentran estaciones se para la función
         return -1
-    data = {'degree':None, #Lugar donde se guardan los datos obtenidos
-            'indegree':None}
-    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
-    data['indegree'] = om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data = {'exitStations': None,   #Total de viajes por estación
+            'arriveStations':None}
+    data['exitStations']=m.newMap(1019,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=compareStations)
+    data['arriveStations']=m.newMap(1019,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=compareStations)
     itExit = it.newIterator(lstExit)
     itArrive = it.newIterator(lstArrive)
     while it.hasNext(itExit):
-        station = it.next(itExit)
-        vertexDegree = gr.outdegree(citibike['graph'],station)
-        updateDegreeIndex(data['degree'],vertexDegree,station)
+        id = it.next(itExit)
+        addExitStation(data,id)
     while it.hasNext(itArrive):
-        station = it.next(itArrive)
-        vertexIndegree = gr.indegree(citibike['graph'],station)
-        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
+        id = it.next(itArrive)
+        addArriveStation(data,id)
     
-    lstExitMax = lt.newList("ARRAY_LIST")
-    obtainValues(data,lstExitMax,'d')
+    lstFinalExit = lt.newList("ARRAY_LIST")  #Listas para obtener las estaciones más usadas en el rango
+    lstFinalArrive = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstFinalExit,'e')
+    obtainValues(data,lstFinalArrive,'a')
 
-    lstArriveMax = lt.newList("ARRAY_LIST")
-    obtainValues(data,lstArriveMax,'i')
-    
-    initStation = lt.getElement(lstExitMax,1)
-    finalStation = lt.getElement(lstArriveMax,1)
+    initStation = lt.getElement(lstFinalExit,1) #Estación inicial de la ruta (ID)
+    finalStation = lt.getElement(lstFinalArrive,1) #Estación final de la ruta (ID)
 
     minimumCostPaths(citibike,initStation)
-    path = minimumCostPath(citibike,finalStation)
+    path = minimumCostPath(citibike,finalStation) #Se calcula el camino de menor tiempo entre las dos estaciones
 
     lstPath = lt.newList("ARRAY_LIST",compareValues)
-    if path is not None:
+    if path is not None:   #Se agrega a una lista para poder asignar sus nombres respectivos
         while (not stack.isEmpty(path)):
             stop = stack.pop(path)
             if lt.isPresent(lstPath,stop['vertexA']) == 0:
                 lt.addLast(lstPath,stop['vertexA'])
-            else:
-                pass
             if lt.isPresent(lstPath,stop['vertexB']) == 0:
                 lt.addLast(lstPath,stop['vertexB'])
-            else:
-                pass
     else:
         pass
+    changeInfo(citibike,lstFinalExit,1) #Se intercambia el ID por el nombre correspondiente de la estación
+    changeInfo(citibike,lstFinalArrive,1)
     
+    initStation = lt.getElement(lstFinalExit,1) #Estación inicial de la ruta (Nombre)
+    finalStation = lt.getElement(lstFinalArrive,1) #Estación final de la ruta (Nombre)
+
     pos = 1
-    while pos < (lt.size(lstPath)+1):
+    while pos < lt.size(lstPath)+1:  #Se intercambia el ID por el nombre correspondiente de las estaciones en la ruta
         changeInfo(citibike,lstPath,pos)
-        pos += 1
+        pos+=1
+
     lstReturn = lt.newList("ARRAY_LIST")
+    
     lt.addLast(lstReturn,initStation)
     lt.addLast(lstReturn,finalStation)
     lt.addLast(lstReturn,lstPath)
@@ -307,6 +316,10 @@ def routeRecomendations(citibike,ageRange):
 
 ########## Requerimiento 6 - Grupal ##########
 def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
+    """
+    Se informa la estación de inicio más cercana a su localización y la estación final más cercana al punto de interés al que desea llegar.
+    Se indica la ruta con menor tiempo para llegar al destino.
+    """ 
     iterator = it.newIterator(citibike['stations'])
     startDistance = 1000000
     startStationId = ''
@@ -430,6 +443,7 @@ def obtainValues(citibike,lst,method):
                 stationId = info['name']
         m.remove(citibike['totalStations'],stationId)
         lt.addLast(lst,stationId)
+
 def distance(lat1,lat2,lon1,lon2):
     """
     Calcula la distancia entre dos puntos
@@ -535,10 +549,7 @@ def changeInfo(citibike,lst,pos):
                 stationId = info['end station name']
                 lt.changeInfo(lst,pos,stationId)
                 break    
-
-
-            
-        
+                    
 def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
@@ -562,16 +573,8 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
             end = info['end station id']
-            p1 = lt.isPresent(lst1,start)
-            p2 = lt.isPresent(lst2,end)
-            if p1 == 0:
-                lt.addLast(lst1,start)  #Se añade a la lista de salidas
-            else:
-                pass
-            if p2 == 0:
-                lt.addLast(lst2,end) #Se añade a la lista de llegadas
-            else:
-                pass
+            lt.addLast(lst1,start)  #Se añade a la lista de salidas
+            lt.addLast(lst2,end) #Se añade a la lista de llegadas
 # ==============================
 # Funciones de Comparacion
 # ==============================
