@@ -572,13 +572,6 @@ def minimumCostPath(citibike,station):
     return path
 
 
-
-    return lista
-
-
-
-
-
 def changeInfo(citibike,lst,pos):
     """
     Intercambia el ID de la estación por su nombre correspondiente
