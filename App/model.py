@@ -251,17 +251,22 @@ def stationsbyres(citibike,idstation,time_max):
     iterator = it.newIterator(vertnum)
     
     ver= ""
-    while it.hasNext(iterator):
-        stations = it.next(iterator)
+ #   while it.hasNext(iterator):
+ #       stations = it.next(iterator)
         #print(stations)
-        if stations == "72":
-            print ("Entre!!")
-            ver = stations
+    if stations == :
+  #          print ("Entre!!")
+ #           ver = stations
 
-    a = dfs.DepthFirstSearch(citibike['graph'],ver)
-
+    lista = lt.newList('ARRAY_LIST')
+    a = dfs.DepthFirstSearch(citibike['graph'],"72")
     
-    b = dfs.pathTo(a,"128")
+    while time_max >                                    #Aquí restringiré el tiempo
+                                                   
+        b = dfs.pathTo(a,"128")
+
+
+   # c = dfs.dfsVertex(lista,citibike['graph'],"72")
     
 
 
@@ -280,7 +285,7 @@ def stationsbyres(citibike,idstation,time_max):
 
 
     
-    return b
+    return c
 
 ####################################################################
 
