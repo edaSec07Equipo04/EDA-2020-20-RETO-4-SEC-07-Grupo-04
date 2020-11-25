@@ -107,7 +107,9 @@ def resitencia(citibike,idstation,time_max ):
     return model.stationsbyres(citibike,idstation,time_max )
 
 
-
+def req2(citibike):
+    return model.req2(citibike)
+    
 
 
 

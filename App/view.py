@@ -100,10 +100,10 @@ def optionThree():
     return -1
 
 
-'''def optionFour():
-    controller.minimumCostPaths(cont, initialStation)
+def optionFour():
+    controller.req2(cont)
     return -1
-'''
+
 
 def optionFive():
     result = controller.topStations(cont)

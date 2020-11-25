@@ -30,14 +30,12 @@ from DISClib.ADT import list as lt
 from DISClib.DataStructures import listiterator as it
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
-from DISClib.Algorithms.Graphs import dfs as dfs
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
-import datetime 
-import time
+from datetime import date
 assert config
 
 """
@@ -118,6 +116,36 @@ def totalConnections(citibike):
     """
     return gr.numEdges(citibike['graph'])
 
+########## REQUERIMIENTO 2 - Sebastian Peña ############
+
+def req2(citibike):
+
+    sc= scc.KosarajuSCC(citibike['graph'])
+    mapa=m.newMap(sc['components'],comparefunction=compareStations)
+    print(mapa)
+    #for dictionary in sc['idscc']['table']['elements']:
+     #   if dictionary['key'] is not None:
+      #      if m.contains(mapa,dictionary['value'])==False:
+       #         lista=lt.newList('ARRAY_LIST',compareStations)
+        #        m.put(mapa,dictionary['value'],lista)
+         #       lt.addLast(lista, dictionary['key'])
+          #  else:
+           #     #m.contains(mapa,dictionary['value'])==True:
+            #    agregar=m.get(mapa,dictionary['value'])
+                
+             #   lt.addLast(agregar['value'],dictionary['key'])
+                #print(agregar)
+    #print(mapa)
+    
+
+
+    return -1
+
+
+
+
+
+
 
 ########## REQUERIMIENTO 3 - Germán Rojas #############
 def topStations(citibike):
@@ -167,44 +195,7 @@ def topStations(citibike):
 
     return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
     
-# ************************
-# Requerimiento 04-JUAN R
 
-def stationsbyres(citibike,idstation,time_max):
-    vertnum = gr.vertices(citibike['graph']) # Vertices
-    iterator = it.newIterator(vertnum)
-    
-    ver= ""
-    while it.hasNext(iterator):
-        stations = it.next(iterator)
-        #print(stations)
-        if stations == "72":
-            print ("Entre!!")
-            ver = stations
-
-    a = dfs.DepthFirstSearch(citibike['graph'],ver)
-
-    
-    b = dfs.pathTo(a,"128")
-    
-
-
-
-
-    #estaciones = gr.vertices(citibike['stations'])
-
-    #arcos = gr.edges(citibike['graph'])
-    #a = citibike['stations']
-    #b=a[info['start station id']]
-    
-
-
-
-
-
-
-    
-    return b
 
 ####################################################################
 
@@ -262,22 +253,9 @@ def routeRecomendations(citibike,ageRange):
     while pos < (lt.size(lstPath)+1):
         changeInfo(citibike,lstPath,pos)
         pos += 1
-    lstReturn = lt.newList("ARRAY_LIST")
-    lt.addLast(lstReturn,initStation)
-    lt.addLast(lstReturn,finalStation)
-    lt.addLast(lstReturn,lstPath)
-    return lstReturn
-##################################################
 
-######## Requerimiento 8 - Bono ###########
-def bikeMaintenance(citibike,bikeId,date):
-    lstResults=lt.newList("ARRAY_LIST")
-    lstStations = lt.newList("ARRAY_LIST",compareValues)
-    stationsInDate(citibike,bikeId,date,lstResults,lstStations)
-    usageTimeResult = usageTime(lstResults)
-    timeStoppedResult = timeStopped(lstResults)
-    return lstStations,usageTimeResult,timeStoppedResult
-    
+    return lstPath
+##################################################
 
 
 def numSCC(graph):
@@ -300,69 +278,6 @@ def stationsSize(graph):
 # ==============================
 # Funciones Helper
 # ==============================
-def usageTime(lstResults):
-    iterator=it.newIterator(lstResults)
-    result = 0
-    while it.hasNext(iterator):
-        info=it.next(iterator)
-        if lt.size(lstResults) == 1:
-            result = int(info['tripduration'])
-            return result
-        else:           
-            r = int(info['tripduration'])
-            result += r
-    return result
-
-def stationsInDate(citibike,bikeId,date,lst,lst2):           
-    iterator = it.newIterator(citibike['stations'])
-    while it.hasNext(iterator):
-        info = it.next(iterator)
-        ocurredInitDate = info['starttime']
-        ocurredInitDate = ocurredInitDate[:19]
-        tripInitDate = datetime.datetime.strptime(ocurredInitDate, '%Y-%m-%d %H:%M:%S')
-        if tripInitDate.date() == date and info['bikeid'] == bikeId:
-            lt.addLast(lst,info)
-            if lt.isPresent(lst2,info['start station name']) == 0:
-                lt.addLast(lst2,info['start station name'])
-            if lt.isPresent(lst2,info['end station name']) == 0:
-                lt.addLast(lst2,info['end station name'])
-
-def timeStopped(lst):
-    result = 0
-    if lt.size(lst) == 1:
-        return result
-    else:
-        iterator = it.newIterator(lst)
-        while it.hasNext(iterator):
-            station = it.next(iterator)
-            station2 = it.next(iterator)
-            ocurredS2Date = station2['starttime']
-            ocurredS2Date = ocurredS2Date[:19]
-            tripS2Date = datetime.datetime.strptime(ocurredS2Date, '%Y-%m-%d %H:%M:%S')
-            tripS2Time = time.mktime(tripS2Date.timetuple())
-            ocurredS1Date = station['stoptime']
-            ocurredS1Date = ocurredS1Date[:19]
-            tripS1Date = datetime.datetime.strptime(ocurredS1Date, '%Y-%m-%d %H:%M:%S')
-            tripS1Time = time.mktime(tripS1Date.timetuple())
-            r = tripS2Time - tripS1Time
-            result += r
-            lt.removeFirst
-    return result
-
-def convertSecondsToDate(seconds):
-    days = seconds//(24*60*60)
-    seconds = seconds % (24*60*60)
-    hours = seconds // (60*60)
-    seconds = seconds %(60*60)
-    minutes = seconds // 60 
-    seconds = seconds % 60
-    print('Días: {} - Horas: {} - Minutos: {} - Segundos: {}'.format(int(days),int(hours),int(minutes),int(seconds)))
-
-def printListContent(lst):
-    iterator = it.newIterator(lst)
-    while it.hasNext(iterator):
-        print("- " + it.next(iterator))
-
 def minimumCostPaths(citibike,station):
     """
     Calcula los caminos de costo mínimo desde la estación
@@ -379,14 +294,6 @@ def minimumCostPath(citibike,station):
     """
     path = djk.pathTo(citibike['paths'],station)
     return path
-
-
-
-    return lista
-
-
-
-
 
 def changeInfo(citibike,lst,pos):
     """
@@ -614,22 +521,21 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
     """
-    
+    today = date.today()   
+    year = today.year    #Obtenemos el año actual
     iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
+    if ageRange[0] == "0":
+        initRange = int(ageRange[0])
+        finalRange = int(ageRange[2]+ageRange[3])
+    elif ageRange == "60+" or ageRange=="60 +":
+        initRange = 60
+        finalRange = year - 1870
+    else: 
+        initRange = int(ageRange[0]+ageRange[1])
+        finalRange = int(ageRange[3]+ageRange[4])
     while it.hasNext(iterator):
         info = it.next(iterator)
-        ocurredDate = info['starttime']
-        year=int(ocurredDate[:4])
         birthYear = int(info['birth year'])
-        if ageRange[0] == "0":
-            initRange = int(ageRange[0])
-            finalRange = int(ageRange[2]+ageRange[3])
-        elif ageRange == "60+" or ageRange=="60 +":
-            initRange = 60
-            finalRange = 120
-        else: 
-            initRange = int(ageRange[0]+ageRange[1])
-            finalRange = int(ageRange[3]+ageRange[4])
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
             end = info['end station id']
