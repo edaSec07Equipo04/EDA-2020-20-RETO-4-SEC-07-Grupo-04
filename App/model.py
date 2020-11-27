@@ -293,41 +293,32 @@ def topStations(citibike):
 # ************************
 # Requerimiento 04-JUAN R
 
-def minToseconds(min):
 
+def minToseconds(min):             # <-------Funcion auxiliar para convertir segundos a minutos
     return min*60
-
-
-
 
 def stationsbyres(citibike,idstation,time_max):
 
-    tiempo = minToseconds(time_max)                                  
-
+    tiempo = minToseconds(time_max)                                     
     lista = lt.newList('ARRAY_LIST',compareLists)
 
-    recorrido = dfs.DepthFirstSearch(citibike['graph'],idstation)    #Recorrido por el gráfo con DFS
-
-    llaves = m.keySet(recorrido['visited'])                     #Extracción llaves del recorrido
-
-    iterador = it.newIterator(llaves)                           #Inicializar Iterador con las llaves
+    recorrido = dfs.DepthFirstSearch(citibike['graph'],idstation)     #Recorrido por el gráfo con DFS
+    llaves = m.keySet(recorrido['visited'])                           #Extracción llaves del recorrido
+    iterador = it.newIterator(llaves)                                 #Inicializar Iterador con las llaves
  
     while it.hasNext(iterador):                                 
         id = it.next(iterador)
         path = dfs.pathTo(recorrido,id)                         #Encontrar el "path" entre el vertice y el de destino
 
         if path is not None:
-
             n_lista=lt.newList('ARRAY_LIST')
             nueva_lista = lt.newList('ARRAY_LIST')
             
             while (not stack.isEmpty(path)):
-
                 ruta = stack.pop(path)                          #Como path es pila, retornar el tope de la fila
                 lt.addLast(n_lista,ruta)                        #Agregar a n_lista, la ruta
             
             suma = 0
-
 
             while lt.size(n_lista)> 1 :
 
@@ -341,9 +332,7 @@ def stationsbyres(citibike,idstation,time_max):
                     suma += peso                                #Suma de los pesos
 
                     c= lt.removeFirst(n_lista)                  #Extraigo el primero de la lista 
-
                     lt.addLast(nueva_lista,c)                   #Lo añado a nueva_lista
-
                 else:
                     break
 
@@ -351,38 +340,32 @@ def stationsbyres(citibike,idstation,time_max):
                 if lt.size(nueva_lista)<= 1:
                     pass
                 else:
-
                     lt.addLast(lista,nueva_lista)
             else:
                 pass
     
-
-
     count = 1 
     for a in range(1,lt.size(lista)+1):
 
-        
-        
-        
-        l = lt.getElement(lista,a)
+        l = lt.getElement(lista,a)                                             #Accedo a las listas dentro de la lista grande
 
         if lt.size(l)==2:
-            print("=========================================")
+            print("=========================================")                 
             print(bold + "RUTA NÚMERO: "+ end + str(count))
             print("\n")
             verticea = lt.getElement(l,1)
             verticeb = lt.getElement(l,2)
 
-            arco = gr.getEdge(citibike['graph'],verticea, verticeb)['weight']
+            arco = gr.getEdge(citibike['graph'],verticea, verticeb)['weight'] #Encuentro el peso entre dos vertices
 
             changeInfo(citibike,l,1)
             changeInfo(citibike,l,2)  
 
             print(bold + "Segmento de ruta: " + end)    
-            printListContent(l)  
+            printListContent(l)                                               #Imprime los segmentos de las rutas con la información de "l"
 
             print(bold + "Tiempo estimado del segmento: "+ end)
-            convertSecondsToDate(arco)
+            convertSecondsToDate(arco)                                        #Convierte los segundos a formato fecha
             print("\n")
             count+=1
            
@@ -395,14 +378,11 @@ def stationsbyres(citibike,idstation,time_max):
                 ll = lt.newList('ARRAY_LIST')
                 vertice1 = lt.getElement(l,1)
                 vertice2 = lt.getElement(l,2)
-
-                
-                
-                arco = gr.getEdge(citibike['graph'],vertice1, vertice2)['weight']
+                  
+                arco = gr.getEdge(citibike['graph'],vertice1, vertice2)['weight'] #Encuentro el peso entre dos verices
 
                 lt.addLast(ll,vertice1)
                 lt.addLast(ll,vertice2)
-
 
                 changeInfo(citibike,ll,1)
                 changeInfo(citibike,ll,2)  
@@ -411,26 +391,16 @@ def stationsbyres(citibike,idstation,time_max):
                 printListContent(ll)  
 
                 print(bold + "Tiempo estimado del segmento: "+ end)
-                convertSecondsToDate(arco)
-                print("\n")
-                
+                convertSecondsToDate(arco)                                      #Convierte los segundos a formato fecha
+                print("\n")  
                 
                 lt.removeFirst(l)
-
 
             count+=1
     print("-------------------------------------------------------")
     print(bold + "TOTAL DE RUTAS ENCONTRADAS: " + end +str(count-1))
              
-        
-
-
-
-
-    return None
- 
-   
-    
+    return None   
 ####################################################################
 
 

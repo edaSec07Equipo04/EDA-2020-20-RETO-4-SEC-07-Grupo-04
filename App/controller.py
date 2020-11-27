@@ -114,11 +114,6 @@ def resitencia(citibike,idstation,time_max ):
 
 
 
-    
-
-
-
-
 def routeRecomendations(citibike,ageRange):
     """
     Informa la estación desde la cual las personas en el rango ingresado inician más viajes.
