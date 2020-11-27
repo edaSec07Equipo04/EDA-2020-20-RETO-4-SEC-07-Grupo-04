@@ -100,10 +100,12 @@ def optionThree():
     return -1
 
 
-'''def optionFour():
-    controller.minimumCostPaths(cont, initialStation)
+def optionFour():
+    s1=int(input("Ingrese el tiempo inicial: "))
+    s2=int(input("Ingrese el tiempo final: "))
+    v1=input("Ingrese la estacion inicial: ")
+    controller.req2(cont,s1, s2, v1)
     return -1
-'''
 
 def optionFive():
     result = controller.topStations(cont)
