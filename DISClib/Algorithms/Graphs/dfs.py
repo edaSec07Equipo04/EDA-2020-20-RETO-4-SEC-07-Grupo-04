@@ -27,7 +27,7 @@
 import config
 from DISClib.DataStructures import adjlist as g
 from DISClib.DataStructures import listiterator as it
-from DISClib.Algorithms import scc as sc
+#from DISClib.Algorithms.Graphs import scc as sc
 from DISClib.ADT import map as map
 from DISClib.ADT import stack as stk
 from DISClib.Utils import error as error
