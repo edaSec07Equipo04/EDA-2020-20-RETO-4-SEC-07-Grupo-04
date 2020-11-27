@@ -36,7 +36,9 @@ from DISClib.ADT import orderedmap as om
 from DISClib.ADT import stack
 from DISClib.Algorithms.Graphs import dfs
 from DISClib.DataStructures import mapentry as me
-from datetime import date
+from math import radians, cos, sin, asin, sqrt
+import datetime 
+import time
 assert config
 
 """
@@ -53,16 +55,32 @@ def newAnalyzer():
     try:
         citibike = {
                     'graph': None,
-                    'stations': None,   
+                    'stations': None,
+                    'exitStations':None,
+                    'arriveStations':None,
+                    'totalStations':None,   
                     'paths':None          
                     }
 
         citibike['graph']=gr.newGraph(datastructure='ADJ_LIST',
                                         directed=True,
                                         size=1000,
-                                        comparefunction=compareStations) 
+                                        comparefunction=compareStations)
+        citibike['exitStations']=m.newMap(1019,
+                                        maptype='PROBING',
+                                        loadfactor=0.5,
+                                        comparefunction=compareStations)
+        citibike['arriveStations']=m.newMap(1019,
+                                        maptype='PROBING',
+                                        loadfactor=0.5,
+                                        comparefunction=compareStations)
+        citibike['totalStations']=m.newMap(1019,
+                                        maptype='PROBING',
+                                        loadfactor=0.5,
+                                        comparefunction=compareStations)                                  
         citibike['stations']=lt.newList('ARRAY_LIST', compareStations)
         return citibike
+
     except Exception as exp:
         error.reraise(exp,'model:newAnalyzer')
 
@@ -75,6 +93,10 @@ def addTrip(citibike, trip):
     duration = int(trip['tripduration'])
     addStation(citibike,origin)
     addStation(citibike,destination)
+    addExitStation(citibike,origin)
+    addArriveStation(citibike,destination)
+    addTotalStation(citibike,origin)
+    addTotalStation(citibike,destination)
     addConnection(citibike,origin,destination,duration)
     lt.addLast(lst,trip)
 
@@ -98,8 +120,71 @@ def addConnection(citibike,origin,destination,duration):
         e.updateAverageWeight(edge,duration)
     return citibike
 
+def newExitStation(station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    exitStation = {'name': '', 'trips':0}
+    exitStation['name'] = station
+    return exitStation
 
+def addExitStation(citibike,station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    exitStations = citibike['exitStations']
+    existStation = m.contains(exitStations,station)
+    if existStation:
+        entry = m.get(exitStations,station)
+        data = me.getValue(entry)
+    else:
+        data = newExitStation(station)
+        m.put(exitStations,station,data)
+    data['trips'] +=1
 
+def newArriveStation(station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    arriveStation = {'name': '', 'trips':0}
+    arriveStation['name'] = station
+    return arriveStation
+
+def addArriveStation(citibike,station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    arriveStations = citibike['arriveStations']
+    existStation = m.contains(arriveStations,station)
+    if existStation:
+        entry = m.get(arriveStations,station)
+        data = me.getValue(entry)
+    else:
+        data = newArriveStation(station)
+        m.put(arriveStations,station,data)
+    data['trips'] +=1
+
+def newTotalStation(station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    totalStation = {'name': '', 'trips':0}
+    totalStation['name'] = station
+    return totalStation
+
+def addTotalStation(citibike,station):
+    """
+    Crea una nueva estructura para modelar los viajes de una estación
+    """
+    totalStations = citibike['totalStations']
+    existStation = m.contains(totalStations,station)
+    if existStation:
+        entry = m.get(totalStations,station)
+        data = me.getValue(entry)
+    else:
+        data = newTotalStation(station)
+        m.put(totalStations,station,data)
+    data['trips'] +=1
 # ==============================
 # Funciones de consulta
 # ==============================
@@ -137,89 +222,355 @@ def topStations(citibike):
     - Top 3 estaciones de salida
     - Top 3 estaciones menos utilizadas
     """
-    vertex = gr.vertices(citibike['graph']) #Número de vértices (estaciones) en Citibike
-    iterator = it.newIterator(vertex)
-    data = {'degree':None,     #Lugar donde se guardarán los datos obtenidos (Salidas, llegadas, totales)
-            'indegree':None,
-            'total': None} 
-    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
-    data['indegree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
-    data['total']=om.newMap(omaptype='RBT',comparefunction=compareValues)   
-    while it.hasNext(iterator):  #Se agrega la información a data
-        station = it.next(iterator)
-        vertexDegree=gr.outdegree(citibike['graph'],station) #Número de salidas
-        updateDegreeIndex(data['degree'],vertexDegree,station)
-        vertexIndegree=gr.indegree(citibike['graph'],station) #Número de llegadas
-        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
-        totalVertex = vertexDegree+vertexIndegree #Total de salidas y llegadas
-        updateTotalIndex(data['total'],totalVertex,station)
+    lstExit = lt.newList("ARRAY_LIST")
+    lstArrive = lt.newList("ARRAY_LIST")
+    lstTotal = lt.newList("ARRAY_LIST")
+    count = 0
+    while count < 3:
+        obtainValues(citibike,lstExit,'e') #Se obtienen las estaciones con más salidas
+        obtainValues(citibike,lstArrive,'a') #Se obtienen las estaciones con más llegadas
+        obtainValues(citibike,lstTotal,'t') #Se obtienen las estaciones menos usadas
+        count += 1
 
-    lstExitMax = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones de salida
-    obtainValues(data,lstExitMax,'d')
-    
-    lstArriveMax = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones de llegada
-    obtainValues(data,lstArriveMax,'i')
-    
-    lstTotal = lt.newList("ARRAY_LIST") #Lugar donde se guardarán las estaciones menos usadas
-    obtainValues(data,lstTotal,'t')
-    
     pos = 1
-
-    while pos < 4:   #Acá se actualizan los nombres de las estaciones
-        changeInfo(citibike,lstExitMax,pos)
-        changeInfo(citibike,lstArriveMax,pos)
+    while pos < 4:       #Se intercambia el ID por el nombre correspondiente de la estación
+        changeInfo(citibike,lstExit,pos)
+        changeInfo(citibike,lstArrive,pos)
         changeInfo(citibike,lstTotal,pos)
-        pos +=1
-    
-    eM1,eM2,eM3 = lt.getElement(lstExitMax,1),lt.getElement(lstExitMax,2),lt.getElement(lstExitMax,3)
-    aM1,aM2,aM3 = lt.getElement(lstArriveMax,1),lt.getElement(lstArriveMax,2),lt.getElement(lstArriveMax,3)
-    tM1,tM2,tM3 = lt.getElement(lstTotal,1),lt.getElement(lstTotal,2),lt.getElement(lstTotal,3)
+        pos+=1
+
+    #Se obtienen los resultados finales    
+    eM1 = lt.getElement(lstExit,1)
+    eM2 = lt.getElement(lstExit,2)
+    eM3 = lt.getElement(lstExit,3)
+    aM1 = lt.getElement(lstArrive,1)
+    aM2 = lt.getElement(lstArrive,2)
+    aM3 = lt.getElement(lstArrive,3)
+    tM1 = lt.getElement(lstTotal,1)
+    tM2 = lt.getElement(lstTotal,2)
+    tM3 = lt.getElement(lstTotal,3)
 
     return eM1,eM2,eM3,aM1,aM2,aM3,tM1,tM2,tM3
+###############################################
+
+   
+# ************************
+# Requerimiento 04-JUAN R
+
+def minToseconds(min):
+
+    return min*60
+
+
+
+
+def stationsbyres(citibike,idstation,time_max):
+
+    tiempo = minToseconds(120) 
+
+    lista = lt.newList('ARRAY_LIST',compareLists)
+
+    recorrido = dfs.DepthFirstSearch(citibike['graph'],"72")
+
+    llaves = m.keySet(recorrido['visited'])
+
+    iterador = it.newIterator(llaves)
+ 
+    while it.hasNext(iterador):
+        id = it.next(iterador)
+
+        path = dfs.pathTo(recorrido,id)
+
+        if path is not None:
+
+            n_lista=lt.newList('ARRAY_LIST')
+
+            nueva_lista = lt.newList('ARRAY_LIST')
+            
+            while (not stack.isEmpty(path)):
+
+                ruta = stack.pop(path)
+
+                lt.addLast(n_lista,ruta)
+            
+            suma = 0
+
+
+            while lt.size(n_lista)> 1 :
+
+                if suma<= tiempo:
+
+                    german = lt.getElement(n_lista,1)
+
+                    hola = lt.getElement(n_lista,2)
+
+                    arco = gr.getEdge(citibike['graph'],german,hola)
+
+                    peso = arco['weight']
+ 
+                    suma += peso 
+
+                    c= lt.removeFirst(n_lista)
+
+                    lt.addLast(nueva_lista,c)
+
+                else:
+                    break
+
+            if lt.isPresent(lista,nueva_lista) == 0:
+                if lt.size(nueva_lista)<= 1:
+                    pass
+                else:
+
+                    lt.addLast(lista,nueva_lista)
+            else:
+                pass
+
+    return lista
+             
+            
+            
+
     
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """   #ÚTIL#################################################################
+
+    
+
+    vertnum = gr.vertices(citibike['graph'])        #Vertices
+    iterator = it.newIterator(vertnum)              #Un iterador
+    lista = lt.newList('ARRAY_LIST')                #Una lista
+    
+   
+
+
+
+
+
+
+
+    ver= ""
+    peso_total = 0
+    while it.hasNext(iterator):
+         arco = gr.getEdge(citibike["graph"],"72",iterator) #Un arco específico
+
+      #   if arco is not None:
+         peso = arco["weight"]                           #Peso del arco
+           # print(peso)
+            
+           # peso_total += peso
+      #   else:
+     #       pass
+            
+         return peso
+       # iterator = it.next(iterator)
+       # print(stations)
+   # if stations == :
+  #          print ("Entre!!")
+  #           ver = stations
+
+    
+    a = dfs.DepthFirstSearch(citibike['graph'],"72")     # RECORRIDO DFS POR ALL EL GRAFO
+
+
+
+
+
+
+
+    
+   # while time_max >                                              
+   #  b = dfs.pathTo(a,"128")
+   # c = dfs.dfsVertex(lista,citibike['graph'],"72")
+    
+
+
+
+
+
+
+
+
+
+
+
+    #estaciones = gr.vertices(citibike['stations'])
+   # if citibike
+    arcos = gr.edges(citibike['graph'])
+    #a = citibike['stations']
+    #b=a[info['start station id']]
+    
+
+
+    
+
+
+
+    
+    return vertnum
+
+    """
 ####################################################################
 
 
 ########## Requerimiento 5 - Grupal ##########
-def routeRecomendations(citibike,ageRange):     
+def routeRecomendations(citibike,ageRange):
+    """
+    Informa la estación desde la cual las personas en el rango ingresado inician más viajes. 
+    La estación donde terminan más viajes personas en rango y el camino mas corto en tiempo entre dicho par de estaciones.
+    """     
     lstExit = lt.newList("ARRAY_LIST",compareValues)
     lstArrive = lt.newList("ARRAY_LIST",compareValues)
-    findStationsInRange(citibike,ageRange,lstExit,lstArrive)
-    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:
+    findStationsInRange(citibike,ageRange,lstExit,lstArrive)  #Se guardan los ID de las estaciones dentro del rango
+    if lt.size(lstExit) == 0 or lt.size(lstArrive) == 0:  #Si no se encuentran estaciones se para la función
         return -1
-    data = {'degree':None, #Lugar donde se guardan los datos obtenidos
-            'indegree':None}
-    data['degree']=om.newMap(omaptype='RBT',comparefunction=compareValues)
-    data['indegree'] = om.newMap(omaptype='RBT',comparefunction=compareValues)
+    data = {'exitStations': None,   #Total de viajes por estación
+            'arriveStations':None}
+    data['exitStations']=m.newMap(1019,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=compareStations)
+    data['arriveStations']=m.newMap(1019,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=compareStations)
     itExit = it.newIterator(lstExit)
     itArrive = it.newIterator(lstArrive)
     while it.hasNext(itExit):
-        station = it.next(itExit)
-        vertexDegree = gr.outdegree(citibike['graph'],station)
-        updateDegreeIndex(data['degree'],vertexDegree,station)
+        id = it.next(itExit)
+        addExitStation(data,id)
     while it.hasNext(itArrive):
-        station = it.next(itArrive)
-        vertexIndegree = gr.indegree(citibike['graph'],station)
-        updateIndegreeIndex(data['indegree'],vertexIndegree,station)
+        id = it.next(itArrive)
+        addArriveStation(data,id)
     
-    lstExitMax = lt.newList("ARRAY_LIST")
-    obtainValues(data,lstExitMax,'d')
+    lstFinalExit = lt.newList("ARRAY_LIST")  #Listas para obtener las estaciones más usadas en el rango
+    lstFinalArrive = lt.newList("ARRAY_LIST")
+    obtainValues(data,lstFinalExit,'e')
+    obtainValues(data,lstFinalArrive,'a')
 
-    lstArriveMax = lt.newList("ARRAY_LIST")
-    obtainValues(data,lstArriveMax,'i')
-    
-    initStation = lt.getElement(lstExitMax,1)
-    finalStation = lt.getElement(lstArriveMax,1)
+    initStation = lt.getElement(lstFinalExit,1) #Estación inicial de la ruta (ID)
+    finalStation = lt.getElement(lstFinalArrive,1) #Estación final de la ruta (ID)
 
     minimumCostPaths(citibike,initStation)
-    path = minimumCostPath(citibike,finalStation)
+    path = minimumCostPath(citibike,finalStation) #Se calcula el camino de menor tiempo entre las dos estaciones
 
     lstPath = lt.newList("ARRAY_LIST",compareValues)
+    if path is not None:   #Se agrega a una lista para poder asignar sus nombres respectivos
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            if lt.isPresent(lstPath,stop['vertexA']) == 0:
+                lt.addLast(lstPath,stop['vertexA'])
+            if lt.isPresent(lstPath,stop['vertexB']) == 0:
+                lt.addLast(lstPath,stop['vertexB'])
+    else:
+        pass
+    changeInfo(citibike,lstFinalExit,1) #Se intercambia el ID por el nombre correspondiente de la estación
+    changeInfo(citibike,lstFinalArrive,1)
+    
+    initStation = lt.getElement(lstFinalExit,1) #Estación inicial de la ruta (Nombre)
+    finalStation = lt.getElement(lstFinalArrive,1) #Estación final de la ruta (Nombre)
+
+    pos = 1
+    while pos < lt.size(lstPath)+1:  #Se intercambia el ID por el nombre correspondiente de las estaciones en la ruta
+        changeInfo(citibike,lstPath,pos)
+        pos+=1
+
+    lstReturn = lt.newList("ARRAY_LIST")
+    
+    lt.addLast(lstReturn,initStation)
+    lt.addLast(lstReturn,finalStation)
+    lt.addLast(lstReturn,lstPath)
+    return lstReturn
+##################################################
+
+########## Requerimiento 6 - Grupal ##########
+def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
+    """
+    Se informa la estación de inicio más cercana a su localización y la estación final más cercana al punto de interés al que desea llegar.
+    Se indica la ruta con menor tiempo para llegar al destino.
+    """ 
+    iterator = it.newIterator(citibike['stations'])
+    startDistance = 1000000
+    startStationId = ''
+    endDistance = 1000000
+    endStationId = ''
+    while it.hasNext(iterator):
+        station = it.next(iterator)
+        startStationLatitude = float(station['start station latitude'])
+        startStationLongitude = float(station['start station longitude'])
+        endStationLatitude = float(station['end station latitude'])
+        endStationLongitude = float(station['end station longitude'])
+        startDistanceResult = distance(lat1,startStationLatitude,lon1,startStationLongitude)
+        if startDistanceResult < startDistance:
+            startDistance = startDistanceResult
+            startStationId = station['start station id']
+        endDistanceResult = distance(lat2,endStationLatitude,lon2,endStationLongitude)
+        if endDistanceResult < endDistance:
+            endDistance = endDistanceResult
+            endStationId = station['end station id']
+    minimumCostPaths(citibike,startStationId)
+    path = minimumCostPath(citibike,endStationId)
+    lstPath = lt.newList("ARRAY_LIST",compareValues)
+    time = 0
     if path is not None:
         while (not stack.isEmpty(path)):
             stop = stack.pop(path)
+            time += stop['weight']
             if lt.isPresent(lstPath,stop['vertexA']) == 0:
                 lt.addLast(lstPath,stop['vertexA'])
             else:
@@ -230,14 +581,31 @@ def routeRecomendations(citibike,ageRange):
                 pass
     else:
         pass
-    
     pos = 1
     while pos < (lt.size(lstPath)+1):
         changeInfo(citibike,lstPath,pos)
         pos += 1
+    startStation = lt.getElement(lstPath,1)
+    endStation = lt.getElement(lstPath,lt.size(lstPath))
+    return startStation,endStation,time,lstPath
 
-    return lstPath
+
+
 ##################################################
+######## Requerimiento 8 - Bono ###########
+
+def bikeMaintenance(citibike,bikeId,date):
+    """
+    Dado un identificador de bicicleta y una fecha específica, retorna el recorrido realizado. 
+    Esto es, todas las estaciones por las que ha pasado, indicando el tiempo total de uso y el tiempo total estacionada.
+    """ 
+    lstResults=lt.newList("ARRAY_LIST") #Estaciones con sus datos completos (bikeid, stoptime, starttime, etc.)
+    lstStations = lt.newList("ARRAY_LIST",compareValues) #Nombres de las estaciones por las cuales circuló
+    stationsInDate(citibike,bikeId,date,lstResults,lstStations)
+    usageTimeResult = usageTime(lstResults)
+    timeStopped = 86400-usageTimeResult
+    return lstStations,usageTimeResult,timeStopped
+##############################################################    
 
 
 def numSCC(graph):
@@ -260,6 +628,116 @@ def stationsSize(graph):
 # ==============================
 # Funciones Helper
 # ==============================
+def obtainValues(citibike,lst,method):
+    """
+    Agrega los ID de las estaciones a su lista correspondiente
+    """
+    if method == 'e':
+        exitValues = m.valueSet(citibike['exitStations'])
+        stationId = ''
+        value = 0
+        iterator = it.newIterator(exitValues)
+        while it.hasNext(iterator):
+            info = it.next(iterator)
+            if info['trips'] > value:
+                value = info['trips']
+                stationId = info['name']
+        m.remove(citibike['exitStations'],stationId)
+        lt.addLast(lst,stationId)
+    elif method == 'a':
+        arriveValues = m.valueSet(citibike['arriveStations'])
+        stationId = ''
+        value = 0
+        iterator = it.newIterator(arriveValues)
+        while it.hasNext(iterator):
+            info = it.next(iterator)
+            if info['trips'] > value:
+                value = info['trips']
+                stationId = info['name']
+        m.remove(citibike['arriveStations'],stationId)
+        lt.addLast(lst,stationId)
+    elif method == 't':
+        totalValues = m.valueSet(citibike['totalStations'])
+        stationId = ''
+        value = 1000000
+        iterator = it.newIterator(totalValues)
+        while it.hasNext(iterator):
+            info = it.next(iterator)
+            if info['trips'] < value:
+                value = info['trips']
+                stationId = info['name']
+        m.remove(citibike['totalStations'],stationId)
+        lt.addLast(lst,stationId)
+
+def distance(lat1,lat2,lon1,lon2):
+    """
+    Calcula la distancia entre dos puntos
+    """
+    lon1 = radians(lon1) 
+    lon2 = radians(lon2) 
+    lat1 = radians(lat1) 
+    lat2 = radians(lat2)
+    dlon = lon2 - lon1  
+    dlat = lat2 - lat1 
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371
+    return(c * r) 
+
+def usageTime(lstResults):
+    """
+    Calcula el tiempo de uso de una bicicleta
+    """
+    iterator=it.newIterator(lstResults)
+    result = 0
+    while it.hasNext(iterator):
+        info=it.next(iterator)
+        if lt.size(lstResults) == 1:
+            result = int(info['tripduration'])
+            return result
+        else:           
+            r = int(info['tripduration'])
+            result += r
+    return result
+
+def stationsInDate(citibike,bikeId,date,lst,lst2):
+    """
+    Identifica las estaciones por las cuales la bicibleta circuló en la fecha indicada.
+    """           
+    iterator = it.newIterator(citibike['stations'])
+    while it.hasNext(iterator):
+        info = it.next(iterator)
+        ocurredInitDate = info['starttime']
+        ocurredInitDate = ocurredInitDate[:19]
+        tripInitDate = datetime.datetime.strptime(ocurredInitDate, '%Y-%m-%d %H:%M:%S')
+        if tripInitDate.date() == date and info['bikeid'] == bikeId:
+            lt.addLast(lst,info)
+            if lt.isPresent(lst2,info['start station name']) == 0:
+                lt.addLast(lst2,info['start station name'])
+            if lt.isPresent(lst2,info['end station name']) == 0:
+                lt.addLast(lst2,info['end station name'])
+
+
+def convertSecondsToDate(seconds):
+    """
+    Transforma segundos a días, horas, minutos y segundos.
+    """
+    days = seconds//(24*60*60)
+    seconds = seconds % (24*60*60)
+    hours = seconds // (60*60)
+    seconds = seconds %(60*60)
+    minutes = seconds // 60 
+    seconds = seconds % 60
+    print('Días: {} - Horas: {} - Minutos: {} - Segundos: {}'.format(int(days),int(hours),int(minutes),int(seconds)))
+
+def printListContent(lst):
+    """
+    Imprime el contenido de una lista
+    """
+    iterator = it.newIterator(lst)
+    while it.hasNext(iterator):
+        print("- " + it.next(iterator))
+
 def minimumCostPaths(citibike,station):
     """
     Calcula los caminos de costo mínimo desde la estación
@@ -296,209 +774,7 @@ def changeInfo(citibike,lst,pos):
                 stationId = info['end station name']
                 lt.changeInfo(lst,pos,stationId)
                 break    
-
-def obtainValues(data,lst,method):
-    """
-    Agrega los ID de las estaciones a su lista correspondiente
-    """
-    while lt.size(lst) < 3:
-        if method == 'd':   #Estaciones de salida
-            a = om.maxKey(data['degree'])
-            r = om.get(data['degree'],om.maxKey(data['degree']))
-            if r['key'] is not None:
-                degreeMap=me.getValue(r)['degreeIndex']
-                result = m.get(degreeMap,a)
-                iterations = knowQuantity(result)
-                if iterations == 0:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    om.deleteMax(data['degree'])
-                    lt.addLast(lst,n)
-                elif iterations == 1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    om.deleteMax(data['degree'])
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                elif iterations == -1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    l = lt.getElement(me.getValue(result)['lstStations'],3)
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                    lt.addLast(lst,l)
-        elif method == 't': #Estaciones menos usadas
-            a = om.minKey(data['total'])
-            r = om.get(data['total'],om.minKey(data['total']))
-            if r['key'] is not None:
-                totalMap=me.getValue(r)['totalIndex']
-                result = m.get(totalMap,a)
-                iterations = knowQuantity(result)
-                if iterations == 0:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    om.deleteMin(data['total'])
-                    lt.addLast(lst,n)
-                elif iterations == 1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    om.deleteMin(data['total'])
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                elif iterations == -1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    l = lt.getElement(me.getValue(result)['lstStations'],3)
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                    lt.addLast(lst,l)
-        elif method == 'i': #Estaciones de llegada
-            a = om.maxKey(data['indegree'])
-            r = om.get(data['indegree'],om.maxKey(data['indegree']))
-            if r['key'] is not None:
-                inDegreeMap=me.getValue(r)['inDegreeIndex']
-                result = m.get(inDegreeMap,a)
-                iterations = knowQuantity(result)
-                if iterations == 0:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    om.deleteMax(data['indegree'])
-                    lt.addLast(lst,n)
-                elif iterations == 1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    om.deleteMax(data['indegree'])
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                elif iterations == -1:
-                    n = lt.getElement(me.getValue(result)['lstStations'],1)
-                    k = lt.getElement(me.getValue(result)['lstStations'],2)
-                    l = lt.getElement(me.getValue(result)['lstStations'],3)
-                    lt.addLast(lst,n)
-                    lt.addLast(lst,k)
-                    lt.addLast(lst,l)        
-        
-
-def knowQuantity(info):
-    """
-    Indica la operación que debe realizar la función obtainValues
-    """
-    result = lt.size(me.getValue(info)['lstStations'])
-    if result == 1:
-        return 0
-    elif result == 2:
-        return 1
-    elif result >=3:
-        return -1
-
-def updateDegreeIndex(map,degree,station):
-    entry = om.get(map,degree)
-    if entry is None:
-        degreeEntry = newDataEntry(station)
-        om.put(map,degree,degreeEntry)
-    else:
-        degreeEntry=me.getValue(entry)
-    addDegreeIndex(degreeEntry,degree,station)
-
-def updateIndegreeIndex(map,inDegree,station):
-    entry = om.get(map,inDegree)
-    if entry is None:
-        inDegreeEntry = newDataEntry2(station)
-        om.put(map,inDegree,inDegreeEntry)
-    else:
-        inDegreeEntry=me.getValue(entry)
-    addIndegreeIndex(inDegreeEntry,inDegree,station)
-
-def updateTotalIndex(map,total,station):
-    entry = om.get(map,total)
-    if entry is None:
-        totalEntry = newDataEntry3(station)
-        om.put(map,total,totalEntry)
-    else:
-        totalEntry=me.getValue(entry)
-    addTotalIndex(totalEntry,total,station)
-
-def addDegreeIndex(degreeEntry,degree,station):
-    lst = degreeEntry['lstDegree']
-    lt.addLast(lst,station)
-    degreeIndex = degreeEntry['degreeIndex']
-    degreeValue = m.get(degreeIndex,degree)
-    if degreeValue is None:
-        entry = newDegreeEntry(degree,station)
-        lt.addLast(entry['lstStations'],station)
-        m.put(degreeIndex,degree,entry)
-    else:
-        entry = me.getValue(degreeValue)
-        lt.addLast(entry['lstStations'],station)
-    return degreeEntry
-
-def addIndegreeIndex(inDegreeEntry,inDegree,station):
-    lst = inDegreeEntry['lstIndegree']
-    lt.addLast(lst,station)
-    inDegreeIndex = inDegreeEntry['inDegreeIndex']
-    inDegreeValue = m.get(inDegreeIndex,inDegree)
-    if inDegreeValue is None:
-        entry = newIndegreeEntry(inDegree,station)
-        lt.addLast(entry['lstStations'],station)
-        m.put(inDegreeIndex,inDegree,entry)
-    else:
-        entry = me.getValue(inDegreeValue)
-        lt.addLast(entry['lstStations'],station)
-    return inDegreeEntry
-
-def addTotalIndex(totalEntry,total,station):
-    lst = totalEntry['lstTotal']
-    lt.addLast(lst,station)
-    totalIndex = totalEntry['totalIndex']
-    totalValue = m.get(totalIndex,total)
-    if totalValue is None:
-        entry = newTotalEntry(total,station)
-        lt.addLast(entry['lstStations'],station)
-        m.put(totalIndex,total,entry)
-    else:
-        entry = me.getValue(totalValue)
-        lt.addLast(entry['lstStations'],station)
-    return totalEntry
-
-def newDataEntry(value):
-    entry = {'degreeIndex':None,'lstDegree':None}
-    entry['degreeIndex']=m.newMap(numelements=3,
-                                    maptype='PROBING',
-                                    comparefunction=compareValuesD)
-    entry['lstDegree']=lt.newList('ARRAY_LIST',compareStations)
-    return entry
-
-def newDataEntry2(value):
-    entry = {'inDegreeIndex':None,'lstIndegree':None}
-    entry['inDegreeIndex']=m.newMap(numelements=3,
-                                    maptype='PROBING',
-                                    comparefunction=compareValuesD)
-    entry['lstIndegree']=lt.newList('ARRAY_LIST',compareStations)
-    return entry
-
-def newDataEntry3(value):
-    entry = {'totalIndex':None,'lstTotal':None}
-    entry['totalIndex']=m.newMap(numelements=3,
-                                    maptype='PROBING',
-                                    comparefunction=compareValuesD)
-    entry['lstTotal']=lt.newList('ARRAY_LIST',compareStations)
-    return entry
-
-def newDegreeEntry(degree, station):
-    degreeEntry = {'degree':None, 'lstStations':None,}
-    degreeEntry['degree']=degree
-    degreeEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
-    return degreeEntry
-
-def newIndegreeEntry(indegree, station):
-    inDegreeEntry = {'indegree':None, 'lstStations':None,}
-    inDegreeEntry['indegree']=indegree
-    inDegreeEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
-    return inDegreeEntry
-
-def newTotalEntry(total, station):
-    totalEntry = {'total':None, 'lstStations':None,}
-    totalEntry['indegree']=total
-    totalEntry['lstStations']=lt.newList('ARRAY_LIST',compareStations)    
-    return totalEntry
-
+                    
 def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
@@ -521,16 +797,8 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
             end = info['end station id']
-            p1 = lt.isPresent(lst1,start)
-            p2 = lt.isPresent(lst2,end)
-            if p1 == 0:
-                lt.addLast(lst1,start)  #Se añade a la lista de salidas
-            else:
-                pass
-            if p2 == 0:
-                lt.addLast(lst2,end) #Se añade a la lista de llegadas
-            else:
-                pass
+            lt.addLast(lst1,start)  #Se añade a la lista de salidas
+            lt.addLast(lst2,end) #Se añade a la lista de llegadas
 # ==============================
 # Funciones de Comparacion
 # ==============================
@@ -563,3 +831,13 @@ def compareValuesD(v1,v):
         return 1
     else:
         return -1
+
+def compareLists(lt1,lt2):
+
+    if lt1['elements'] == lt2['elements']:
+        return 0
+    elif lt1['elements'] > lt2['elements']:
+        return 1
+    else:    
+        return -1
+
