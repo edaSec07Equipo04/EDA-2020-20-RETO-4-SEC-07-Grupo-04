@@ -102,12 +102,14 @@ def topStations(citibike):
     """
     return model.topStations(citibike)
 
+# Req 02
+def req2(citibike,initial_time, final_time, initial_vertex):
+    return model.req2(citibike,initial_time, final_time, initial_vertex)
+
+
 ##Req 04##
 def resitencia(citibike,idstation,time_max ):
     return model.stationsbyres(citibike,idstation,time_max )
-
-
-
 
 
 

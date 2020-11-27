@@ -30,6 +30,7 @@ from DISClib.DataStructures import listiterator as it
 from DISClib.ADT import map as map
 from DISClib.ADT import stack as stk
 from DISClib.Utils import error as error
+from DISClib.ADT import graph as g
 assert config
 
 
@@ -62,6 +63,45 @@ def DepthFirstSearch(graph, source):
     except Exception as exp:
         error.reraise(exp, 'dfs:DFS')
 
+def DepthFirstSearch2(graph, source, components):
+    """
+    Genera un recorrido DFS sobre el grafo graph
+    Args:
+        graph:  El grafo a recorrer
+        source: Vertice de inicio del recorrido.
+    Returns:
+        Una estructura para determinar los vertices
+        conectados a source
+    Raises:
+        Exception
+    """
+    try:
+        search = {
+                  'source': source,
+                  'visited': None,
+                  }
+
+        search['visited'] = map.newMap(numelements=g.numVertices(graph),
+                                       maptype='PROBING',
+                                       comparefunction=graph['comparefunction']
+                                       )
+
+        path = stk.newStack()
+        cycles = [[]]
+        weights = [0]
+
+        map.put(search['visited'], source, {'marked': True, 'edgeTo': None})
+        dfs_extra(search, graph, source, components, path, cycles, weights)
+        cycles.pop()
+        weights.pop()
+        for i in range(len(weights)):
+            weights[i] /= 60
+        
+        return (cycles,weights)
+        
+    except Exception as exp:
+        error.reraise(exp, 'dfs:DFS')
+
 
 def dfsVertex(search, graph, vertex):
     """
@@ -89,6 +129,55 @@ def dfsVertex(search, graph, vertex):
     except Exception as exp:
         error.reraise(exp, 'dfs:dfsVertex')
 
+def dfs_extra(search, graph, vertex, components, path, cycles, weights):
+    """
+    Funcion auxiliar para calcular un recorrido DFS
+    Args:
+        search: Estructura para almacenar el recorrido
+        vertex: Vertice de inicio del recorrido.
+    Returns:
+        Una estructura para determinar los vertices
+        conectados a source
+    Raises:
+        Exception
+    """
+    try:
+        if vertex is not None:
+            stk.push(path, vertex)
+        if vertex is not None:
+            cycles[-1].append(vertex)
+        adjlst = g.adjacents(graph, vertex)
+        adjslstiter = it.newIterator(adjlst)
+        while (it.hasNext(adjslstiter)):
+            w = it.next(adjslstiter)
+            if w is not None:
+                visited = map.get(search['visited'], w)
+                vertex_comp = map.get(components,vertex)['value']
+                w_comp = map.get(components,w)['value']
+                # if aun no he visitado todos mis hijos
+                if visited is None and vertex_comp == w_comp:
+                    map.put(search['visited'],
+                            w, {'marked': True, 'edgeTo': vertex})
+                    edge = g.getEdge(graph,vertex,w)['weight']
+                    current_weight = edge+20
+                    weights[-1] += current_weight
+                    dfs_extra(search, graph, w, components, path, cycles, weights)
+                if g.outdegree(graph, vertex) > 1:
+                    new_arr = []
+                    new_arr.append(path['last']['info'])
+                    dummy = path['first']
+                    while dummy['next'] is not None:
+                        new_arr.append(dummy['info'])
+                        dummy = dummy['next']
+                    if new_arr != cycles[-1]:
+                        cycles.append(new_arr)
+                        weights.append(weights[-1])
+                    
+                    
+        map.put(search['visited'],vertex, None)
+        stk.pop(path)
+    except Exception as exp:
+        error.reraise(exp, 'dfs:dfsVertex')
 
 def hasPathTo(search, vertex):
     """
