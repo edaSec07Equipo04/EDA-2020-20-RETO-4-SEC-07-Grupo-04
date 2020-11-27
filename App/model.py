@@ -28,13 +28,13 @@ from DISClib.ADT.graph import gr
 from DISClib.ADT import map as m
 from DISClib.ADT import list as lt
 from DISClib.DataStructures import listiterator as it
-from DISClib.Algorithms.Graphs import scc
+from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
-from DISClib.Algorithms.Graphs import dfs as dfs
 from DISClib.Utils import error as error
 from DISClib.DataStructures import edge as e
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import stack
+from DISClib.Algorithms.Graphs import dfs
 from DISClib.DataStructures import mapentry as me
 from math import radians, cos, sin, asin, sqrt
 import datetime 
@@ -210,6 +210,45 @@ def totalConnections(citibike):
     """
     return gr.numEdges(citibike['graph'])
 
+########## REQUERIMIENTO 2 - Sebastian Peña ############
+
+def req2(citibike, initial_time, final_time, initial_vertex):
+    graph = scc.KosarajuSCC(citibike['graph'])
+    components = graph['idscc']
+    grande=lt.newList('ARRAY_LIST',compareStations)
+    cycles, weights = dfs.DepthFirstSearch2(citibike['graph'],initial_vertex, components)
+    tiempos= lt.newList('ARRAY_LIST')
+    for i in range(len(cycles)):
+        if initial_time <= weights[i] <= final_time:
+            
+            normal=lt.newList('ARRAY_LIST',compareStations)
+            tiempo_exacto=lt.newList('ARRAY_LIST')
+            lt.addLast(tiempo_exacto,weights[i])
+            lt.addLast(tiempos,tiempo_exacto)
+            for j in cycles[i]:
+        
+                
+                
+                lt.addLast(normal,j)
+            lt.addLast(grande,normal)
+
+    for p in range(1,lt.size(grande)+1):
+        info= lt.getElement(grande,p)
+        for e in range (1,lt.size(info)+1):
+            changeInfo(citibike,info,e) 
+
+    for w in range(1,lt.size(grande)+1):
+        estaciones = lt.getElement(grande,w)
+        tiempo = lt.getElement(tiempos, w)
+        print ('El ciclo demora: ')
+        convertSecondsToDate(tiempo['elements'][0])
+        print('Su camino es: ')
+        print(estaciones['elements'])
+    print('Se encontraron: '+ str(lt.size(grande)) + ' rutas circulares')
+
+
+
+
 
 ########## REQUERIMIENTO 3 - Germán Rojas #############
 def topStations(citibike):
@@ -253,7 +292,6 @@ def topStations(citibike):
    
 # ************************
 # Requerimiento 04-JUAN R
-
 
 def minToseconds(min):
 
@@ -521,6 +559,7 @@ def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
 
 ##################################################
 ######## Requerimiento 8 - Bono ###########
+
 def bikeMaintenance(citibike,bikeId,date):
     """
     Dado un identificador de bicicleta y una fecha específica, retorna el recorrido realizado. 
@@ -682,7 +721,6 @@ def minimumCostPath(citibike,station):
     path = djk.pathTo(citibike['paths'],station)
     return path
 
-
 def changeInfo(citibike,lst,pos):
     """
     Intercambia el ID de la estación por su nombre correspondiente
@@ -728,6 +766,7 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
             end = info['end station id']
             lt.addLast(lst1,start)  #Se añade a la lista de salidas
             lt.addLast(lst2,end) #Se añade a la lista de llegadas
+
 # ==============================
 # Funciones de Comparacion
 # ==============================

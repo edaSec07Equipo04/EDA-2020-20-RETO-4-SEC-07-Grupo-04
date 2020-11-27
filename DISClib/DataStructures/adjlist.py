@@ -70,7 +70,7 @@ def newGraph(size, cmpfunction, directed):
                                            comparefunction=cmpfunction)
         return graph
     except Exception as exp:
-        error.reraise(exp, 'ajlist:newgraph')
+        error.reraise(exp, 'adjlist:newgraph')
 
 
 def insertVertex(graph, vertex):
