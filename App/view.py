@@ -103,10 +103,13 @@ def optionThree():
 
 
 def optionFour():
-    s1=int(input("Ingrese el tiempo inicial: "))
-    s2=int(input("Ingrese el tiempo final: "))
+    s1=int(input("Ingrese el tiempo inicial: "))*60
+    s2=int(input("Ingrese el tiempo final: "))*60
     v1=input("Ingrese la estacion inicial: ")
     controller.req2(cont,s1, s2, v1)
+    #print(estaciones['elements'],tiempos)
+
+    
     return -1
 
 def optionFive():

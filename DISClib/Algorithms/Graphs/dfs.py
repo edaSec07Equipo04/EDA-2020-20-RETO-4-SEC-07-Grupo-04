@@ -96,7 +96,7 @@ def DepthFirstSearch2(graph, source, components):
         cycles.pop()
         weights.pop()
         for i in range(len(weights)):
-            weights[i] /= 60
+            weights[i] 
         
         return (cycles,weights)
         

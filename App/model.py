@@ -207,11 +207,39 @@ def totalConnections(citibike):
 def req2(citibike, initial_time, final_time, initial_vertex):
     graph = scc.KosarajuSCC(citibike['graph'])
     components = graph['idscc']
-
+    grande=lt.newList('ARRAY_LIST',compareStations)
     cycles, weights = dfs.DepthFirstSearch2(citibike['graph'],initial_vertex, components)
+    tiempos= lt.newList('ARRAY_LIST')
     for i in range(len(cycles)):
         if initial_time <= weights[i] <= final_time:
-            print(f'El ciclo demora {round(weights[i],2)} min y su camino es {cycles[i]}')
+            
+            normal=lt.newList('ARRAY_LIST',compareStations)
+            tiempo_exacto=lt.newList('ARRAY_LIST')
+            lt.addLast(tiempo_exacto,weights[i])
+            lt.addLast(tiempos,tiempo_exacto)
+            for j in cycles[i]:
+        
+                
+                
+                lt.addLast(normal,j)
+            lt.addLast(grande,normal)
+
+    for p in range(1,lt.size(grande)+1):
+        info= lt.getElement(grande,p)
+        for e in range (1,lt.size(info)+1):
+            changeInfo(citibike,info,e) 
+
+    for w in range(1,lt.size(grande)+1):
+        estaciones = lt.getElement(grande,w)
+        tiempo = lt.getElement(tiempos, w)
+        print ('El ciclo demora: ')
+        convertSecondsToDate(tiempo['elements'][0])
+        print('Su camino es: ')
+        print(estaciones['elements'])
+    print('Se encontraron: '+ str(lt.size(grande)) + ' rutas circulares')
+
+
+
 
 
 ########## REQUERIMIENTO 3 - Germán Rojas #############
@@ -779,26 +807,28 @@ def findStationsInRange(citibike,ageRange,lst1,lst2):
     """
     Añade a las listas pasadas por parámetro las estaciones que se encuentren dentro del rango ingresado
     """
-    today = date.today()   
-    year = today.year    #Obtenemos el año actual
+    
     iterator = it.newIterator(citibike['stations'])  #Lugar donde se encuentra la información de todas las estaicones
-    if ageRange[0] == "0":
-        initRange = int(ageRange[0])
-        finalRange = int(ageRange[2]+ageRange[3])
-    elif ageRange == "60+" or ageRange=="60 +":
-        initRange = 60
-        finalRange = year - 1870
-    else: 
-        initRange = int(ageRange[0]+ageRange[1])
-        finalRange = int(ageRange[3]+ageRange[4])
     while it.hasNext(iterator):
         info = it.next(iterator)
+        ocurredDate = info['starttime']
+        year=int(ocurredDate[:4])
         birthYear = int(info['birth year'])
+        if ageRange[0] == "0":
+            initRange = int(ageRange[0])
+            finalRange = int(ageRange[2]+ageRange[3])
+        elif ageRange == "60+" or ageRange=="60 +":
+            initRange = 60
+            finalRange = 120
+        else: 
+            initRange = int(ageRange[0]+ageRange[1])
+            finalRange = int(ageRange[3]+ageRange[4])
         if year - birthYear >= initRange and year - birthYear <= finalRange:
             start = info['start station id']
             end = info['end station id']
             lt.addLast(lst1,start)  #Se añade a la lista de salidas
             lt.addLast(lst2,end) #Se añade a la lista de llegadas
+
 # ==============================
 # Funciones de Comparacion
 # ==============================
