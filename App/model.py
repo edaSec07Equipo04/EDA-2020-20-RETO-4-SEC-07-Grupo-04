@@ -246,47 +246,215 @@ def topStations(citibike):
 # ************************
 # Requerimiento 04-JUAN R
 
+
+def minToseconds(min):
+
+    return min*60
+
+
+
+
 def stationsbyres(citibike,idstation,time_max):
-    vertnum = gr.vertices(citibike['graph']) # Vertices
-    iterator = it.newIterator(vertnum)
+
+    tiempo = minToseconds(120) 
+
+    lista = lt.newList('ARRAY_LIST',compareLists)
+
+    recorrido = dfs.DepthFirstSearch(citibike['graph'],"72")
+
+    llaves = m.keySet(recorrido['visited'])
+
+    iterador = it.newIterator(llaves)
+ 
+    while it.hasNext(iterador):
+        id = it.next(iterador)
+
+        path = dfs.pathTo(recorrido,id)
+
+        if path is not None:
+
+            n_lista=lt.newList('ARRAY_LIST')
+
+            nueva_lista = lt.newList('ARRAY_LIST')
+            
+            while (not stack.isEmpty(path)):
+
+                ruta = stack.pop(path)
+
+                lt.addLast(n_lista,ruta)
+            
+            suma = 0
+
+
+            while lt.size(n_lista)> 1 :
+
+                if suma<= tiempo:
+
+                    german = lt.getElement(n_lista,1)
+
+                    hola = lt.getElement(n_lista,2)
+
+                    arco = gr.getEdge(citibike['graph'],german,hola)
+
+                    peso = arco['weight']
+ 
+                    suma += peso 
+
+                    c= lt.removeFirst(n_lista)
+
+                    lt.addLast(nueva_lista,c)
+
+                else:
+                    break
+
+            if lt.isPresent(lista,nueva_lista) == 0:
+                if lt.size(nueva_lista)<= 1:
+                    pass
+                else:
+
+                    lt.addLast(lista,nueva_lista)
+            else:
+                pass
+
+    return lista
+             
+            
+            
+
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """   #ÚTIL#################################################################
+
+    
+
+    vertnum = gr.vertices(citibike['graph'])        #Vertices
+    iterator = it.newIterator(vertnum)              #Un iterador
+    lista = lt.newList('ARRAY_LIST')                #Una lista
+    
+   
+
+
+
+
+
+
+
     ver= ""
- #   while it.hasNext(iterator):
- #       stations = it.next(iterator)
-        #print(stations)
-    if stations == :
+    peso_total = 0
+    while it.hasNext(iterator):
+         arco = gr.getEdge(citibike["graph"],"72",iterator) #Un arco específico
+
+      #   if arco is not None:
+         peso = arco["weight"]                           #Peso del arco
+           # print(peso)
+            
+           # peso_total += peso
+      #   else:
+     #       pass
+            
+         return peso
+       # iterator = it.next(iterator)
+       # print(stations)
+   # if stations == :
   #          print ("Entre!!")
- #           ver = stations
+  #           ver = stations
 
-    lista = lt.newList('ARRAY_LIST')
-    a = dfs.DepthFirstSearch(citibike['graph'],"72")
     
-    while time_max >                                    #Aquí restringiré el tiempo
-                                                   
-        b = dfs.pathTo(a,"128")
+    a = dfs.DepthFirstSearch(citibike['graph'],"72")     # RECORRIDO DFS POR ALL EL GRAFO
 
 
+
+
+
+
+
+    
+   # while time_max >                                              
+   #  b = dfs.pathTo(a,"128")
    # c = dfs.dfsVertex(lista,citibike['graph'],"72")
     
 
 
 
 
-    #estaciones = gr.vertices(citibike['stations'])
 
-    #arcos = gr.edges(citibike['graph'])
+
+
+
+
+
+
+    #estaciones = gr.vertices(citibike['stations'])
+   # if citibike
+    arcos = gr.edges(citibike['graph'])
     #a = citibike['stations']
     #b=a[info['start station id']]
     
 
 
-
+    
 
 
 
     
-    return c
+    return vertnum
 
+    """
 ####################################################################
 
 
@@ -653,5 +821,14 @@ def compareValuesD(v1,v):
     elif v1 > v2:
         return 1
     else:
+        return -1
+
+def compareLists(lt1,lt2):
+
+    if lt1['elements'] == lt2['elements']:
+        return 0
+    elif lt1['elements'] > lt2['elements']:
+        return 1
+    else:    
         return -1
 
