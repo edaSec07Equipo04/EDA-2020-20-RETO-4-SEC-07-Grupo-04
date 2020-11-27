@@ -67,6 +67,7 @@ def loadFile(citibike, tripfile):
                                 delimiter=",")
     for trip in input_file:
         model.addTrip(citibike, trip)
+        
     return citibike
 
 
@@ -105,6 +106,7 @@ def topStations(citibike):
 ##Req 04##
 def resitencia(citibike,idstation,time_max ):
     return model.stationsbyres(citibike,idstation,time_max )
+
 
 
 

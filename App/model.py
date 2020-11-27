@@ -51,6 +51,8 @@ de creacion y consulta sobre las estructuras de datos.
 # -----------------------------------------------------
 
 # Funciones para agregar informacion al grafo
+bold = '\033[1m'
+end = '\033[0m'
 def newAnalyzer():
     try:
         citibike = {
@@ -79,10 +81,16 @@ def newAnalyzer():
                                         loadfactor=0.5,
                                         comparefunction=compareStations)                                  
         citibike['stations']=lt.newList('ARRAY_LIST', compareStations)
+
+        
+
+
         return citibike
 
     except Exception as exp:
         error.reraise(exp,'model:newAnalyzer')
+
+
 
 def addTrip(citibike, trip):
     """
@@ -256,32 +264,29 @@ def minToseconds(min):
 
 def stationsbyres(citibike,idstation,time_max):
 
-    tiempo = minToseconds(120) 
+    tiempo = minToseconds(time_max)                                  
 
     lista = lt.newList('ARRAY_LIST',compareLists)
 
-    recorrido = dfs.DepthFirstSearch(citibike['graph'],"72")
+    recorrido = dfs.DepthFirstSearch(citibike['graph'],idstation)    #Recorrido por el gráfo con DFS
 
-    llaves = m.keySet(recorrido['visited'])
+    llaves = m.keySet(recorrido['visited'])                     #Extracción llaves del recorrido
 
-    iterador = it.newIterator(llaves)
+    iterador = it.newIterator(llaves)                           #Inicializar Iterador con las llaves
  
-    while it.hasNext(iterador):
+    while it.hasNext(iterador):                                 
         id = it.next(iterador)
-
-        path = dfs.pathTo(recorrido,id)
+        path = dfs.pathTo(recorrido,id)                         #Encontrar el "path" entre el vertice y el de destino
 
         if path is not None:
 
             n_lista=lt.newList('ARRAY_LIST')
-
             nueva_lista = lt.newList('ARRAY_LIST')
             
             while (not stack.isEmpty(path)):
 
-                ruta = stack.pop(path)
-
-                lt.addLast(n_lista,ruta)
+                ruta = stack.pop(path)                          #Como path es pila, retornar el tope de la fila
+                lt.addLast(n_lista,ruta)                        #Agregar a n_lista, la ruta
             
             suma = 0
 
@@ -290,24 +295,21 @@ def stationsbyres(citibike,idstation,time_max):
 
                 if suma<= tiempo:
 
-                    german = lt.getElement(n_lista,1)
+                    german = lt.getElement(n_lista,1)           #Hallar vértice 1
+                    hola = lt.getElement(n_lista,2)             #Hallar vértice 2
 
-                    hola = lt.getElement(n_lista,2)
+                    arco = gr.getEdge(citibike['graph'],german,hola)    #ENcontrar el arco entre 1 y 2
+                    peso = arco['weight']                       #Encontar el peso del arco
+                    suma += peso                                #Suma de los pesos
 
-                    arco = gr.getEdge(citibike['graph'],german,hola)
+                    c= lt.removeFirst(n_lista)                  #Extraigo el primero de la lista 
 
-                    peso = arco['weight']
- 
-                    suma += peso 
-
-                    c= lt.removeFirst(n_lista)
-
-                    lt.addLast(nueva_lista,c)
+                    lt.addLast(nueva_lista,c)                   #Lo añado a nueva_lista
 
                 else:
                     break
 
-            if lt.isPresent(lista,nueva_lista) == 0:
+            if lt.isPresent(lista,nueva_lista) == 0:            #Si no esta presente nueva lista en lista, lo agregó
                 if lt.size(nueva_lista)<= 1:
                     pass
                 else:
@@ -315,146 +317,82 @@ def stationsbyres(citibike,idstation,time_max):
                     lt.addLast(lista,nueva_lista)
             else:
                 pass
+    
 
-    return lista
+
+    count = 1 
+    for a in range(1,lt.size(lista)+1):
+
+        
+        
+        
+        l = lt.getElement(lista,a)
+
+        if lt.size(l)==2:
+            print("=========================================")
+            print(bold + "RUTA NÚMERO: "+ end + str(count))
+            print("\n")
+            verticea = lt.getElement(l,1)
+            verticeb = lt.getElement(l,2)
+
+            arco = gr.getEdge(citibike['graph'],verticea, verticeb)['weight']
+
+            changeInfo(citibike,l,1)
+            changeInfo(citibike,l,2)  
+
+            print(bold + "Segmento de ruta: " + end)    
+            printListContent(l)  
+
+            print(bold + "Tiempo estimado del segmento: "+ end)
+            convertSecondsToDate(arco)
+            print("\n")
+            count+=1
+           
+        else:
+            
+            print("=========================================")
+            print(bold + "RUTA NÚMERO: " + end + str(count))
+            print("\n")
+            while  1 < lt.size(l):
+                ll = lt.newList('ARRAY_LIST')
+                vertice1 = lt.getElement(l,1)
+                vertice2 = lt.getElement(l,2)
+
+                
+                
+                arco = gr.getEdge(citibike['graph'],vertice1, vertice2)['weight']
+
+                lt.addLast(ll,vertice1)
+                lt.addLast(ll,vertice2)
+
+
+                changeInfo(citibike,ll,1)
+                changeInfo(citibike,ll,2)  
+
+                print(bold + "Segmento ruta: " + end)    
+                printListContent(ll)  
+
+                print(bold + "Tiempo estimado del segmento: "+ end)
+                convertSecondsToDate(arco)
+                print("\n")
+                
+                
+                lt.removeFirst(l)
+
+
+            count+=1
+    print("-------------------------------------------------------")
+    print(bold + "TOTAL DE RUTAS ENCONTRADAS: " + end +str(count-1))
              
-            
-            
-
-    
+        
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    """   #ÚTIL#################################################################
-
-    
-
-    vertnum = gr.vertices(citibike['graph'])        #Vertices
-    iterator = it.newIterator(vertnum)              #Un iterador
-    lista = lt.newList('ARRAY_LIST')                #Una lista
-    
+    return None
+ 
    
-
-
-
-
-
-
-
-    ver= ""
-    peso_total = 0
-    while it.hasNext(iterator):
-         arco = gr.getEdge(citibike["graph"],"72",iterator) #Un arco específico
-
-      #   if arco is not None:
-         peso = arco["weight"]                           #Peso del arco
-           # print(peso)
-            
-           # peso_total += peso
-      #   else:
-     #       pass
-            
-         return peso
-       # iterator = it.next(iterator)
-       # print(stations)
-   # if stations == :
-  #          print ("Entre!!")
-  #           ver = stations
-
     
-    a = dfs.DepthFirstSearch(citibike['graph'],"72")     # RECORRIDO DFS POR ALL EL GRAFO
-
-
-
-
-
-
-
-    
-   # while time_max >                                              
-   #  b = dfs.pathTo(a,"128")
-   # c = dfs.dfsVertex(lista,citibike['graph'],"72")
-    
-
-
-
-
-
-
-
-
-
-
-
-    #estaciones = gr.vertices(citibike['stations'])
-   # if citibike
-    arcos = gr.edges(citibike['graph'])
-    #a = citibike['stations']
-    #b=a[info['start station id']]
-    
-
-
-    
-
-
-
-    
-    return vertnum
-
-    """
 ####################################################################
 
 
@@ -832,3 +770,10 @@ def compareLists(lt1,lt2):
     else:    
         return -1
 
+def compareids(id1,id2):
+    if id1 == id2:
+        return 0
+    if id1>id2:
+        return 1
+    else:
+        return -1
