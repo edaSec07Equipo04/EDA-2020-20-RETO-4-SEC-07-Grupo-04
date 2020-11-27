@@ -119,14 +119,31 @@ def req2(citibike):
 
 
 def routeRecomendations(citibike,ageRange):
+    """
+    Informa la estación desde la cual las personas en el rango ingresado inician más viajes.
+    La estación donde terminan más viajes personas en rango y el camino mas corto en tiempo entre dicho par de estaciones.
+    """
     return model.routeRecomendations(citibike,ageRange)
 
 def bikeMaintenance(citibike,bikeId,date):
+    """
+    Dado un identificador de bicicleta y una fecha específica, retorna el recorrido realizado.
+    Esto es, todas las estaciones por las que ha pasado, indicando el tiempo total de uso y el tiempo total estacionada.
+    """
     date = datetime.datetime.strptime(date, '%Y-%m-%d')
     return model.bikeMaintenance(citibike,bikeId,date.date())
 
+def interestingRoutes(citibike,lat1,lon1,lat2,lon2):
+    return model.interestingRoutes(citibike,lat1,lon1,lat2,lon2)
+
 def convertSecondsToDate(seconds):
+    """
+    Transforma segundos a días, horas, minutos y segundos.
+    """
     return model.convertSecondsToDate(seconds)
 
 def printListContent(lst):
+    """
+    Imprime el contenido de una lista
+    """
     return model.printListContent(lst)

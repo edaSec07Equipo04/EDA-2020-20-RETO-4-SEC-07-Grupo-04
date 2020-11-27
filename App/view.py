@@ -46,6 +46,8 @@ operación seleccionada.
 servicefile = ''
 initialStation = None
 recursionLimit = 20000
+bold = '\033[1m'
+end = '\033[0m'
 
 # ___________________________________________________
 #  Menu principal
@@ -112,21 +114,21 @@ def optionFive():
     eM1,eM2,eM3=result[0],result[1],result[2]
     aM1,aM2,aM3=result[3],result[4],result[5]
     tM1,tM2,tM3=result[6],result[7],result[8]
-    print("======== Top 3 de salida ========")
+    print(bold+"======== Top 3 de salida ========"+end)
     print("1. "+"\t"+str(eM1))
     print("2. "+"\t"+str(eM2))
     print("3. "+"\t"+str(eM3))
-    print("=================================")
-    print("======== Top 3 de llegada ========")
+    print(bold+"================================="+end)
+    print(bold+"======== Top 3 de llegada ========"+end)
     print("1. "+"\t"+str(aM1))
     print("2. "+"\t"+str(aM2))
     print("3. "+"\t"+str(aM3))
-    print("=================================")
-    print("======== Tres estaciones menos utilizadas ========")
+    print(bold+"================================="+end)
+    print(bold+"======== Tres estaciones menos utilizadas ========"+end)
     print("1. "+"\t"+str(tM1))
     print("2. "+"\t"+str(tM2))
     print("3. "+"\t"+str(tM3))
-    print("=================================")
+    print(bold+"================================="+end)
 
 
 '''def optionSix():
@@ -165,7 +167,7 @@ def optionSeven():
             print("Estación inicial: " + initStation)
             print("\nEstaciones intermedias: ")
             if lt.size(result) == 2:
-                print("- No hay estaciones intermedias")
+                print("- No hay estaciones intermedias, se puede ir directamente.")
             else:
                 for i in range(2,lt.size(result)):
                     print("\n- " + lt.getElement(result,i))
@@ -177,13 +179,22 @@ def optionSeven():
 
 
 
-'''def optionEight():
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
-
+def optionEight():
+    lat1 = float(input("Ingrese la latitud de su ubicación actual: "))
+    lon1 = float(input("Ingrese la longitud de su ubicación actual: "))
+    lat2 = float(input("Ingrese la latitud del lugar que quiere visitar: "))
+    lon2 = float(input("Ingrese la longitud del lugar que quiere visitar: "))
+    startStation,endStation,time,path=controller.interestingRoutes(cont,lat1,lon1,lat2,lon2)
+    print(bold+"=========================================================="+end)
+    print(bold+"Estación más cercana a su ubicación: "+end + startStation)
+    print(bold+"Estación más cercana al sitio que quiere visitar: "+end+endStation)
+    print(bold+"Tiempo estimado de viaje: "+end)
+    controller.convertSecondsToDate(time)
+    print(bold+"Estaciones de la ruta: "+end)
+    controller.printListContent(path)
+    print(bold+"=========================================================="+end)
     return -1
-'''
+
 
 '''def optionNine():
     maxvert, maxdeg = controller.servedRoutes(cont)
@@ -197,14 +208,14 @@ def optionTen():
     id = input("Ingrese el ID a consultar: ")
     date = input('Ingrese la fecha a consultar (AAAA-MM-DD): ')
     lstStations,usageTime,timeStopped = controller.bikeMaintenance(cont,id,date)
-    print("==========================================================")
-    print("* El tiempo total de uso de " + id + " en " + date + " fue: ")
+    print(bold+"=========================================================="+end)
+    print(bold+"El tiempo total de uso de " + id + " en " + date + " fue: "+end)
     controller.convertSecondsToDate(usageTime)
-    print("* El tiempo total estacionada fue: ")
+    print(bold+"El tiempo total estacionada fue: "+end)
     controller.convertSecondsToDate(timeStopped)
-    print("* Estaciones por las que la bicicleta " + id + " pasó en la fecha " + date+ ":")
+    print(bold+"Estaciones por las que la bicicleta "+ id + " pasó en la fecha " + date+ ":"+end)
     controller.printListContent(lstStations)
-    print("==========================================================")
+    print(bold+"=========================================================="+end)
     return -1
 
 
